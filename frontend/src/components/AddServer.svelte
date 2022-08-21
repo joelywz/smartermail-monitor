@@ -1,7 +1,9 @@
 <script type="ts">
-  import { createEventDispatcher } from "svelte";
+import { createEventDispatcher } from "svelte";
+
+  import { ping } from "../api/smartermail";
+  import { addServer } from "../store/data";
   import InputField from "./InputField.svelte";
-  import type { ServerInfo } from '../../smartermail'
 
   const dispatch = createEventDispatcher();
 
@@ -10,7 +12,7 @@
   let password = "";
   let online: boolean | null = null;
   let isTestingConnection: boolean = false;
-  export let handleTest: (info: ServerInfo) => Promise<boolean> | undefined = undefined;
+  let errorMessage = "";
 
   $: canSubmit = host != "" && username != "" && password != "";
   $: connectionColor = getConnectionColor(online);
@@ -29,21 +31,9 @@
     online = null;
     isTestingConnection = true;
 
-    if (handleTest == undefined) {
-      online = null;
-      isTestingConnection = false;
-      return;
-    }
+    cleanHost();
 
-    let success = await handleTest({
-      host,
-      username,
-      password,
-    })
-
-    console.log("Success")
-
-    if (success) {
+    if (await ping(host, username, password)) {
       online = true;
     } else {
       online = false;
@@ -53,15 +43,27 @@
   }
 
   function handleSubmit() {
-    dispatch("submit", {
-      host,
-      username,
-      password,
-    });
+    errorMessage = "";
+    cleanHost();
+    try {
+      addServer(host, username, password);
+      dispatch("submit")
+    } catch (e) {
+      const err = e as Error;
+
+      if (err.message == "already exist") {
+        errorMessage = "Server has already been addded"
+      }
+    }
+
+  }
+
+  function cleanHost() {
+    host = host.replace(/^"+|\/+$/g, "");
   }
 </script>
 
-<div class="p-8 max-w-sm w-full overflow-scroll" style="width: 400px;">
+<div class="p-8 max-w-sm w-full overflow-auto" style="width: 400px;">
   <h1 class="text-lg font-semibold mb-4">Add Server</h1>
   <form
     class="text-sm flex flex-col gap-5"
@@ -89,6 +91,8 @@
       bind:value={password}
       disabled={isTestingConnection}
     />
+
+    <div class="text-xs text-red-500 gap-0 h-4">{errorMessage}</div>
 
     <div class="flex flex-row items-center gap-2">
       <div

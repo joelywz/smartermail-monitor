@@ -1,6 +1,6 @@
 <script type="ts">
 import type { SortStates } from ".";
-import ArrowDownIcon from "../icons/ArrowDownIcon.svelte";
+import ArrowDownIcon from "../../icons/ArrowDownIcon.svelte";
 import {createEventDispatcher} from 'svelte';
 
 

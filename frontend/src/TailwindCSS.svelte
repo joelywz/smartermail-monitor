@@ -6,7 +6,6 @@
 html, body {
     @apply bg-neutral-100;
     box-sizing: border-box;
-    overscroll-behavior: none;
 }
 
 button[type="submit"] {
@@ -15,7 +14,7 @@ button[type="submit"] {
 }
 
 button:disabled[type="submit"] {
-    @apply bg-neutral-200;
+    @apply bg-neutral-400;
 }
 
 button:hover:enabled[type="submit"]{

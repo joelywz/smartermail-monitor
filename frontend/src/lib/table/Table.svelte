@@ -1,6 +1,5 @@
 <script type="ts">
 import type { Column, SortStates } from ".";
-import AddServer from "../addserver/AddServer.svelte";
 import BodyCell from "./BodyCell.svelte";
 import HeadCell from "./HeadCell.svelte";
     type T = $$Generic;
@@ -14,7 +13,7 @@ import HeadCell from "./HeadCell.svelte";
     let sortStates: SortStates[] = columns.map(_ => "default");
     let sortColIndex: number = 0;
 
-    $: minTableWidth = columns.reduce((a, col) => a + col.width, 0);
+    $: minTableWidth = columns.reduce((a, col) => a + col.width, 0) + 40;
     $: isSorted = sortStates.includes("ascend") || sortStates.includes("descend");
     $: dsToDisplay = isSorted ? sortedDataSources : dataSources;
     $: {
@@ -65,7 +64,7 @@ import HeadCell from "./HeadCell.svelte";
 
 </script>
 
-<table class="border-collapse flex flex-col h-full" style={`min-width: ${minTableWidth}px`}>
+<table class="border-collapse w-full flex flex-col" style={`min-width: ${minTableWidth}px`}>
     <thead class="border-b">
         <tr class="block" style={`padding: ${cellPaddingY}px 0`}>
             {#each columns as col, i}
@@ -75,11 +74,11 @@ import HeadCell from "./HeadCell.svelte";
             {/each}
         </tr>
     </thead>
-    <tbody class="overflow-y-scroll h-full text-sm">
-        {#each dsToDisplay as source}
+    <tbody class="overflow-y-scroll max-h-full text-sm h-full">
+        {#each dsToDisplay as source }
             <tr class="block hover:bg-neutral-100 rounded-sm" style={`padding: ${cellPaddingY}px 0`}>
                 {#each columns as col}
-                    <td style={`width: ${col.width}px; padding: 0 ${cellPaddingX}px;`}>
+                    <td class="overflow-hidden inline-block" style={`width: ${col.width}px; padding: 0 ${cellPaddingX}px;`}>
                         <BodyCell value={source[col.index]} component={col.component} cellProps={col.genereateProps && col.genereateProps(source)}/>
                     </td>
                 {/each}
