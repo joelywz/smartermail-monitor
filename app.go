@@ -220,7 +220,7 @@ func (a *App) CheckForUpdates(silent bool) (string, error) {
 			runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
 				Type:          runtime.InfoDialog,
 				Title:         "Update Failed",
-				Message:       "Try downloading and updating the application manually.",
+				Message:       "Try downloading and updating the application manually.\n" + err.Error(),
 				Buttons:       []string{"OK"},
 				DefaultButton: "OK",
 			})
