@@ -252,9 +252,7 @@ export default function Dashboard() {
                     </div>
 
 
-                    <div className="p-6 bg-white rounded-md flex-grow">
-                        <Table columns={columns} datasource={data.dataSources} />
-                    </div>
+                    <Table columns={columns} datasource={data.dataSources} />
                 </div>
             </motion.main>
 
