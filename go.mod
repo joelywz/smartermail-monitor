@@ -3,7 +3,9 @@ module github.com/joelywz/smartermail-monitor
 go 1.17
 
 require (
+	github.com/blang/semver v3.5.1+incompatible
 	github.com/golang-module/dongle v0.1.1
+	github.com/matoous/go-nanoid/v2 v2.0.0
 	github.com/rhysd/go-github-selfupdate v1.2.3
 	github.com/valyala/fasthttp v1.39.0
 	github.com/wailsapp/wails/v2 v2.0.0-beta.43
@@ -12,7 +14,6 @@ require (
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
-	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/google/go-github/v30 v30.1.0 // indirect

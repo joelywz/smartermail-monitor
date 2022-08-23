@@ -6,8 +6,12 @@ import (
 	"log"
 	"os"
 
+	"github.com/blang/semver"
 	"github.com/joelywz/smartermail-monitor/internal/keep"
 	"github.com/joelywz/smartermail-monitor/internal/smartermailapi"
+	"github.com/joelywz/smartermail-monitor/internal/updater"
+	"github.com/rhysd/go-github-selfupdate/selfupdate"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 var DATA_FILENAME = "data.smmd"
@@ -29,14 +33,18 @@ type Status struct {
 type App struct {
 	iv          []byte
 	relativeDir string
+	version     string
 	ctx         context.Context
+	os          string
 }
 
 // NewApp creates a new App application struct
-func NewApp(relDir string, iv []byte) *App {
+func NewApp(relDir string, iv []byte, version string, os string) *App {
 	return &App{
 		iv:          iv,
 		relativeDir: relDir,
+		version:     version,
+		os:          os,
 	}
 }
 
@@ -45,6 +53,7 @@ func NewApp(relDir string, iv []byte) *App {
 func (a *App) startup(ctx context.Context) {
 	a.createDir()
 	a.ctx = ctx
+	a.CheckForUpdates(true)
 }
 
 // Greet returns a greeting for the given name
@@ -154,4 +163,68 @@ func (a App) createDir() error {
 	}
 
 	return nil
+}
+
+func (a *App) CheckForUpdates(silent bool) (string, error) {
+	release, found, err := selfupdate.DetectLatest("joelywz/smartermail-monitor")
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	v := semver.MustParse(a.version)
+	if !found || release.Version.LTE(v) {
+		if !silent {
+			runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
+				Type:          runtime.InfoDialog,
+				Title:         "No Updates Available",
+				Message:       "Current version: " + a.version,
+				Buttons:       []string{"OK"},
+				DefaultButton: "OK",
+			})
+		}
+
+		return "no updates", nil
+	}
+
+	message := "Version " + release.Version.String() + " is available\n\n Release notes:\n" + release.ReleaseNotes
+
+	opts := runtime.MessageDialogOptions{
+		Type:          runtime.QuestionDialog,
+		Title:         "Update Available",
+		Message:       message,
+		Buttons:       []string{"Update", "Cancel"},
+		DefaultButton: "Update",
+		CancelButton:  "Cancel",
+	}
+
+	dialog, _ := runtime.MessageDialog(a.ctx, opts)
+
+	if dialog == "Update" {
+		if a.os == "darwin" {
+			err = updater.DarwinUpdate(release.AssetURL)
+		} else {
+			err = updater.WindowsUpdate(release.Version)
+		}
+
+		if err == nil {
+			runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
+				Type:          runtime.InfoDialog,
+				Title:         "Update Completed",
+				Message:       "Update " + release.Version.String() + " is installed. Please restart the application to apply changes.",
+				Buttons:       []string{"OK"},
+				DefaultButton: "OK",
+			})
+		} else {
+			runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
+				Type:          runtime.InfoDialog,
+				Title:         "Update Failed",
+				Message:       "Try downloading and updating the application manually.",
+				Buttons:       []string{"OK"},
+				DefaultButton: "OK",
+			})
+		}
+	}
+
+	return "success", nil
 }

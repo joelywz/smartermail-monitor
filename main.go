@@ -3,11 +3,9 @@ package main
 import (
 	"embed"
 	"fmt"
-	"log"
 	"os"
 	"runtime"
 
-	"github.com/rhysd/go-github-selfupdate/selfupdate"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 )
@@ -15,25 +13,14 @@ import (
 //go:embed frontend/dist
 var assets embed.FS
 
-const VERSION = "1.0.0"
-
-func doSelfUpdate() {
-	// v := semver.MustParse(VERSION)
-	latest, found, err := selfupdate.DetectLatest("joelywz/smartermail-monitor")
-
-	if err != nil {
-		log.Println(err)
-	}
-
-	log.Println(latest, found)
-}
+const VERSION = "0.2.0"
 
 func main() {
 
 	// Create an instance of the app structure
-	app := NewApp(getBaseDir(), getIv())
+	app := NewApp(getBaseDir(), getIv(), VERSION, runtime.GOOS)
 
-	doSelfUpdate()
+	// doSelfUpdate()
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:            "Smartermail Monitor",

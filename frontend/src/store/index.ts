@@ -1,13 +1,21 @@
 import create from 'zustand';
 import { DataSource } from '../lib/Table';
 import smartermailapi from '../api/smartermail';
-import { GetSpoolMessageCount, HasSavedData, ReadData, SaveData, DeleteData} from '../../wailsjs/go/main/App';
+import { GetSpoolMessageCount, HasSavedData, ReadData, SaveData, DeleteData, CheckForUpdates} from '../../wailsjs/go/main/App';
+
+const APP_VERSION = "0.2.0";
+const SAVE_VERSION = "1.0";
+export const ConflictError = new Error("conflict encounted");
+export const NotFoundError = new Error("not found");
+export const AccessError = new Error("no access");
+export const InvalidDataError = new Error("invalid data");
 
 interface Store {
     password: string | null;
     servers: Server[];
     dataSources: MonitorDataSource[];
-    version: string;
+    appVersion: string;
+    saveVersion: string;
     timer: number;
     refreshTime: number;
     reset: () => void;
@@ -21,6 +29,7 @@ interface Store {
     resetData: () => Promise<boolean>
     tick: () => void
     setRefreshTime: (val: number) => void;
+    checkForUpdates: (silent: boolean) => Promise<string>;
 
 }
 
@@ -51,11 +60,7 @@ interface Save {
 }
 
 
-const SAVE_VERSION = "1.0";
-export const ConflictError = new Error("conflict encounted");
-export const NotFoundError = new Error("not found");
-export const AccessError = new Error("no access");
-export const InvalidDataError = new Error("invalid data");
+
 
 const useData = create<Store>((set, get) => {
 
@@ -126,7 +131,7 @@ const useData = create<Store>((set, get) => {
                 servers: parsedData.servers,
                 dataSources: parsedData.servers.map(s => emptyDataSource(s.host)),
                 loadedData: parsedData,
-                version: parsedData.version,
+                saveVersion: parsedData.version,
                 password: password,
             }))
 
@@ -142,7 +147,7 @@ const useData = create<Store>((set, get) => {
 
         const save: Save = {
             servers: $.servers,
-            version: $.version,
+            version: $.saveVersion,
         }
 
         await SaveData(JSON.stringify(save), $.password);
@@ -153,7 +158,8 @@ const useData = create<Store>((set, get) => {
         dataSources: [],
         password: "joelyong",
         servers: [],
-        version: SAVE_VERSION,
+        appVersion: APP_VERSION,
+        saveVersion: SAVE_VERSION,
         timer: 30,
         refreshTime: 30,
         reset: () => {
@@ -162,7 +168,7 @@ const useData = create<Store>((set, get) => {
                 dataSources: [],
                 password: null,
                 servers: [],
-                version: SAVE_VERSION,
+                saveVersion: SAVE_VERSION,
             }))
         },
         hasRegistered: HasSavedData,
@@ -174,7 +180,7 @@ const useData = create<Store>((set, get) => {
                 ...prev,
                 password: password,
                 servers: [],
-                version: SAVE_VERSION,
+                saveVersion: SAVE_VERSION,
             }))
 
             await save();
@@ -257,7 +263,8 @@ const useData = create<Store>((set, get) => {
                 refreshTime: val,
                 timer: val,
             }));
-        }
+        },
+        checkForUpdates: CheckForUpdates
     }
 })
 
