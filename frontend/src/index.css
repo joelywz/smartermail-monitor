@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 html, body {
-    @apply bg-neutral-100;
+    @apply bg-neutral-100 overflow-hidden;
     font-family: "Manrope";
 }
 

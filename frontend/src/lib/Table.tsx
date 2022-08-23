@@ -115,7 +115,7 @@ export default function Table<T extends DataSource>({ datasource, columns, paddi
           </tr>
         </thead>
 
-        <tbody className="overflow-y-auto max-h-full h-full w-fit min-w-full">
+        <tbody className="overflow-y-auto overflow-x-hidden max-h-full h-full w-fit min-w-full">
           <AnimatePresence>
             {getDataSource().map(source => (
               <motion.tr key={`row-${source.key}`} className="w-fit" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 20 }} layout transition={{ease: "easeInOut", duration: 0.25}}>
