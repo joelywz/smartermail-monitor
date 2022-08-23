@@ -3,7 +3,7 @@ import { DataSource } from '../lib/Table';
 import smartermailapi from '../api/smartermail';
 import { GetSpoolMessageCount, HasSavedData, ReadData, SaveData, DeleteData, CheckForUpdates} from '../../wailsjs/go/main/App';
 
-const APP_VERSION = "0.2.1";
+const APP_VERSION = "0.2.2";
 const SAVE_VERSION = "1.0";
 export const ConflictError = new Error("conflict encounted");
 export const NotFoundError = new Error("not found");
