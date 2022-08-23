@@ -1,12 +1,12 @@
 {
-  "name": "sm-monitor",
-  "outputfilename": "sm-monitor",
+  "name": "Smartermail Monitor",
+  "outputfilename": "Smartermail Monitor",
   "frontend:install": "pnpm install",
   "frontend:build": "pnpm run build",
   "frontend:dev:watcher": "pnpm run dev",
   "frontend:dev:serverUrl": "auto",
   "author": {
-    "name": "",
+    "name": "Joel Yong",
     "email": "yongwenzhuo@gmail.com"
   }
 }
