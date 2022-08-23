@@ -2,6 +2,8 @@ package main
 
 import (
 	"embed"
+	"log"
+	"os"
 	"runtime"
 
 	"github.com/wailsapp/wails/v2"
@@ -26,15 +28,17 @@ func main() {
 	// Create an instance of the app structure
 	app := NewApp(relativeDir, iv)
 
+	log.Println(os.Getwd())
+
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:            "Smartermail Monitor",
 		Width:            700,
-		Height:           550,
-		MinHeight:        550,
+		Height:           600,
+		MinHeight:        600,
 		MinWidth:         700,
 		Assets:           assets,
-		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
+		BackgroundColour: &options.RGBA{R: 245, G: 245, B: 245, A: 1},
 		OnStartup:        app.startup,
 		Bind: []interface{}{
 			app,
