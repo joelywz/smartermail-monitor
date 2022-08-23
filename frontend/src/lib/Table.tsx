@@ -95,8 +95,8 @@ export default function Table<T extends DataSource>({ datasource, columns, paddi
   }
 
   return (
-    <div className="flex h-full">
-      <table className="border-collapse max-h-full w-full flex flex-col overflow-x-auto">
+    <div className="flex h-full bg-white px-8 py-8 rounded-md overflow-x-auto">
+      <table className="border-collapse max-h-full w-full flex flex-col overflow-x-auto bg-white">
         <thead>
           <tr className='flex'>
             {columns.map((col, index) => (
