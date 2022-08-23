@@ -15,19 +15,8 @@ var assets embed.FS
 
 func main() {
 
-	relativeDir := ""
-
-	iv := []byte{117, 198, 35, 158, 66, 75, 117, 93, 86, 48, 127, 177, 51, 93, 249, 50}
-
-	if runtime.GOOS == "darwin" {
-		homeDir, _ := os.UserHomeDir()
-		relativeDir = fmt.Sprintf("%s/smartermail-monitor/", homeDir)
-	} else if runtime.GOOS == "windows" {
-		relativeDir = ""
-	}
-
 	// Create an instance of the app structure
-	app := NewApp(relativeDir, iv)
+	app := NewApp(getBaseDir(), getIv())
 
 	// Create application with options
 	err := wails.Run(&options.App{
@@ -47,4 +36,19 @@ func main() {
 	if err != nil {
 		println("Error:", err.Error())
 	}
+}
+
+func getBaseDir() string {
+	baseDir := ""
+	if runtime.GOOS == "darwin" {
+		homeDir, _ := os.UserHomeDir()
+		baseDir = fmt.Sprintf("%s/Library/SmartermailMonitorData/", homeDir)
+	} else if runtime.GOOS == "windows" {
+		baseDir = ""
+	}
+	return baseDir
+}
+
+func getIv() []byte {
+	return []byte{117, 198, 35, 158, 66, 75, 117, 93, 86, 48, 127, 177, 51, 93, 249, 50}
 }
