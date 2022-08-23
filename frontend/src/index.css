@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+    @apply bg-neutral-100 overflow-hidden;
+    font-family: "Manrope";
+}
+
+tr, th {
+    @apply block;
+    min-width: 200px;
+}
+
+td {
+    min-width: 150px;
+}
+
+button[type="submit"]{
+    @apply bg-blue-500 py-2 rounded-sm text-white disabled:bg-neutral-400 enabled:hover:bg-blue-600 transition-all duration-200 text-sm font-semibold;
+}
+
+@font-face {
+    font-family: "Manrope";
+    font-style: normal;
+    font-weight: 200;
+    src: local(""), url("../public/fonts/Manrope.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Manrope";
+    font-style: normal;
+    font-weight: 300;
+    src: local(""), url("../public/fonts/Manrope.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Manrope";
+    font-style: normal;
+    font-weight: 400;
+    src: local(""), url("../public/fonts/Manrope.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Manrope";
+    font-style: normal;
+    font-weight: 500;
+    src: local(""), url("../public/fonts/Manrope.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Manrope";
+    font-style: normal;
+    font-weight: 600;
+    src: local(""), url("../public/fonts/Manrope.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Manrope";
+    font-style: normal;
+    font-weight: 700;
+    src: local(""), url("../public/fonts/Manrope.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Manrope";
+    font-style: normal;
+    font-weight: 800;
+    src: local(""), url("../public/fonts/Manrope.woff2") format("woff2");
+}
