@@ -130,6 +130,16 @@ func (a *App) ReadData(password string) string {
 	return string(data)
 }
 
+func (a *App) DeleteData() (bool, error) {
+	err := os.Remove(a.getPath((DATA_FILENAME)))
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (a *App) getPath(path string) string {
 	return fmt.Sprintf("%s%s", a.relativeDir, path)
 }

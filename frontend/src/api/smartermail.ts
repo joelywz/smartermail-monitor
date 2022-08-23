@@ -27,3 +27,5 @@ export async function ping(host: string, username: string, password: string): Pr
 
     return false;
 }
+
+export default {fetch, ping}

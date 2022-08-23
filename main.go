@@ -30,8 +30,8 @@ func main() {
 	err := wails.Run(&options.App{
 		Title:            "Smartermail Monitor",
 		Width:            700,
-		Height:           600,
-		MinHeight:        400,
+		Height:           550,
+		MinHeight:        550,
 		MinWidth:         700,
 		Assets:           assets,
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},

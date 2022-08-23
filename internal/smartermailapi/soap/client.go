@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -155,10 +154,6 @@ func (c *soapClient) GetRequestStatus() (*entities.Status, error) {
 
 	if !res.Result.Success {
 		return nil, errors.New("failed")
-	}
-
-	for _, item := range res.Result.KeyValPairs.Stats {
-		log.Println(item)
 	}
 
 	stats := res.Result.KeyValPairs.Stats
