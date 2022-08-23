@@ -200,11 +200,12 @@ func (a *App) CheckForUpdates(silent bool) (string, error) {
 
 	dialog, _ := runtime.MessageDialog(a.ctx, opts)
 
-	if dialog == "Update" {
+	if dialog == "Update" || dialog == "Yes" {
 		if a.os == "darwin" {
 			err = updater.DarwinUpdate(release.AssetURL)
 		} else {
-			err = updater.WindowsUpdate(release.Version)
+			log.Println("updating to ", release.Version)
+			err = updater.WindowsUpdate(release.AssetURL)
 		}
 
 		if err == nil {
