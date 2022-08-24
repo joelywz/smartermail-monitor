@@ -95,7 +95,7 @@ export default function Table<T extends DataSource>({ datasource, columns, paddi
   }
 
   return (
-    <div className="flex h-full bg-white px-8 py-8 rounded-md overflow-x-auto">
+    <div className="flex flex-grow bg-white px-8 py-8 rounded-md overflow-x-auto">
       <table className="border-collapse max-h-full w-full flex flex-col overflow-x-auto bg-white">
         <thead>
           <tr className='flex'>
@@ -115,7 +115,7 @@ export default function Table<T extends DataSource>({ datasource, columns, paddi
           </tr>
         </thead>
 
-        <tbody className="overflow-y-auto overflow-x-hidden max-h-full h-full w-fit min-w-full">
+        <tbody className="overflow-y-auto overflow-x-hidden w-fit min-w-full">
           <AnimatePresence>
             {getDataSource().map(source => (
               <motion.tr key={`row-${source.key}`} className="w-fit" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 20 }} layout transition={{ease: "easeInOut", duration: 0.25}}>
