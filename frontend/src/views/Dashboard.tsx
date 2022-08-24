@@ -10,33 +10,25 @@ import useData from "../store";
 import Table from "../lib/Table";
 import AddServer from "../components/AddServer";
 import Modal from "../lib/Modal";
+import useRefreshInput from "../hooks/useRefreshInput";
 
 export default function Dashboard() {
 
     const [showAddModal, setShowAddModal] = useState(false);
     const navigate = useNavigate();
     const data = useData();
-    const [refreshTime, setRefreshTime] = useState(100);
-    const refreshFocusTimeout = useRef<number | null>(null)
     const columns = useMonitorColumns();
+    const refreshInputProps = useRefreshInput();
 
     useEffect(() => {
-
         if (data.password == null) {
             navigate("/");
             return;
         }
 
-        const id = setInterval(() => {
-            data.tick();
-        }, 1000);
-
-        setRefreshTime(data.refreshTime);
-
-        return () => {
-            clearInterval(id);
+        if (data.dataSources.length == 0) {
+            data.login(data.password);
         }
-
     }, [])
 
     function handleRefresh() {
@@ -46,58 +38,6 @@ export default function Dashboard() {
     function handleLogout() {
         data.reset();
         navigate("/");
-
-    }
-
-    function handleRefreshChange(ev: ChangeEvent<HTMLInputElement>) {
-
-        if (refreshFocusTimeout.current != null) {
-            clearTimeout(refreshFocusTimeout.current);
-        }
-
-        if (ev.target.value == "") {
-            setRefreshTime(0);
-        }
-
-
-
-        const newVal = parseInt(ev.target.value)
-
-        if (isNaN(newVal)) {
-            return;
-        }
-
-        setRefreshTime(newVal);
-
-        refreshFocusTimeout.current = setTimeout(() => {
-            // handleRefreshSet(newVal);
-            ev.target.blur();
-        }, 2000);
-
-
-
-    }
-
-    function handleRefreshSet(value?: number) {
-        console.log("set")
-        if (refreshFocusTimeout.current != null) {
-            clearTimeout(refreshFocusTimeout.current)
-            refreshFocusTimeout.current = null;
-        }
-
-        let targetTime = refreshTime;
-
-        if (value != null) {
-            targetTime = value;
-        }
-
-        if (targetTime < 10) {
-            targetTime = 10;
-        }
-
-        data.setRefreshTime(targetTime);
-
-        setRefreshTime(targetTime);
 
     }
 
@@ -114,7 +54,7 @@ export default function Dashboard() {
                             <p className="text-xs text-neutral-500">Refreshing in {data.timer}s</p>
 
                             <div className="flex h-full items-center">
-                                <input className="w-12 rounded-l-md h-full px-1 text-xs outline-none text-center border border-r-0 text-neutral-800" onChange={handleRefreshChange} onBlur={() => handleRefreshSet()} value={refreshTime} />
+                                <input className="w-12 rounded-l-md h-full px-1 text-xs outline-none text-center border border-r-0 text-neutral-800" {...refreshInputProps} />
                                 <div className="px-2 bg-neutral-50 text-xs h-full rounded-r-md flex items-center text-center text-neutral-600 border">s</div>
                             </div>
 

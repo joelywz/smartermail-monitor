@@ -27,6 +27,7 @@ export default function Login() {
 
     useEffect(() => {
         async function exec() {
+            data.reset()
             try {
                 if (!await data.hasRegistered()) {
                     navigate("/register");

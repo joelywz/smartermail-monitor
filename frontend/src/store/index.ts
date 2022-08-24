@@ -127,7 +127,6 @@ const useData = create<Store>((set, get) => {
             if (!parsedData.servers) throw InvalidDataError;
             if (!parsedData.version) throw InvalidDataError;
 
-            console.log("set refresh timer")
             set(prev => ({
                 ...prev,
                 servers: parsedData.servers,

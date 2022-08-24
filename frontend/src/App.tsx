@@ -6,12 +6,25 @@ import Register from "./views/Register";
 import Login from "./views/Login";
 import useData from "./store";
 import { TruckLoading } from "@emotion-icons/fa-solid";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function App() {
+
+  const data = useData();
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      data.tick();
+    }, 1000);
+  
+    return () => {
+      clearInterval(id);
+    }
+  }, [])
+
   return (
     <BrowserRouter>
-      <AnimatedRoutes/>
+      <AnimatedRoutes />
     </BrowserRouter>
   )
 }
@@ -42,7 +55,7 @@ function AnimatedRoutes() {
     <div className="h-screen w-screen overflow-hidden">
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          <Route path="" element={<Init/>}/>
+          <Route path="" element={<Init />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
