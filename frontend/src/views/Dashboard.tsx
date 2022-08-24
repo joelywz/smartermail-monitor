@@ -11,6 +11,7 @@ import Table from "../lib/Table";
 import AddServer from "../components/AddServer";
 import Modal from "../lib/Modal";
 import useRefreshInput from "../hooks/useRefreshInput";
+import { Cog } from "@emotion-icons/boxicons-solid/Cog"
 
 export default function Dashboard() {
 
@@ -41,6 +42,10 @@ export default function Dashboard() {
 
     }
 
+    function handleSettingsClick() {
+        navigate("/settings")
+    }
+
     return (
         <>
             <motion.main
@@ -58,10 +63,13 @@ export default function Dashboard() {
                                 <div className="px-2 bg-neutral-50 text-xs h-full rounded-r-md flex items-center text-center text-neutral-600 border">s</div>
                             </div>
 
-
-
                             <button className="bg-blue-500 flex justify-center items-center text-white rounded-md h-8 w-8" onClick={handleRefresh}>
                                 <Refresh size={18} />
+                            </button>
+
+
+                            <button className="bg-blue-500 flex justify-center items-center text-white rounded-md h-8 w-8" onClick={handleSettingsClick}>
+                                <Cog size={18} />
                             </button>
                             <button className="bg-blue-500 flex justify-center items-center text-white rounded-md h-8 w-8" onClick={handleLogout}>
                                 <LockAlt size={15} />

@@ -2,6 +2,8 @@ import create from 'zustand';
 import { DataSource } from '../lib/Table';
 import smartermailapi from '../api/smartermail';
 import { GetSpoolMessageCount, HasSavedData, ReadData, SaveData, DeleteData, CheckForUpdates} from '../../wailsjs/go/main/App';
+import ChangePassword from '../components/ChangePassword';
+import { Preview } from '@emotion-icons/material';
 
 const APP_VERSION = "0.2.2";
 const SAVE_VERSION = "1.0";
@@ -30,6 +32,7 @@ interface Store {
     tick: () => void
     setRefreshTime: (val: number) => void;
     checkForUpdates: (silent: boolean) => Promise<string>;
+    changePassword: (password: string) => Promise<void>;
 
 }
 
@@ -274,7 +277,14 @@ const useData = create<Store>((set, get) => {
             }));
             save()
         },
-        checkForUpdates: CheckForUpdates
+        checkForUpdates: CheckForUpdates,
+        changePassword: async (password) => {
+            set(prev => ({
+                ...prev,
+                password,
+            }));
+            await save();
+        }
     }
 })
 

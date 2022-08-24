@@ -7,6 +7,7 @@ import Login from "./views/Login";
 import useData from "./store";
 import { TruckLoading } from "@emotion-icons/fa-solid";
 import { useEffect, useState } from "react";
+import Settings from "./views/Settings";
 
 function App() {
 
@@ -59,6 +60,7 @@ function AnimatedRoutes() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/settings" element={<Settings />}/>
         </Routes>
       </AnimatePresence>
       <div className="fixed right-0 bottom-0 text-neutral-400 text-xs p-2.5 z">
