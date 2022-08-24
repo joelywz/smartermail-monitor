@@ -57,6 +57,7 @@ interface Server {
 interface Save {
     version: string,
     servers: Server[],
+    refreshTime: number,
 }
 
 
@@ -130,6 +131,7 @@ const useData = create<Store>((set, get) => {
                 ...prev,
                 servers: parsedData.servers,
                 dataSources: parsedData.servers.map(s => emptyDataSource(s.host)),
+                timer: parsedData.refreshTime || 30,
                 loadedData: parsedData,
                 saveVersion: parsedData.version,
                 password: password,
@@ -148,7 +150,8 @@ const useData = create<Store>((set, get) => {
         const save: Save = {
             servers: $.servers,
             version: $.saveVersion,
-        }
+            refreshTime: $.refreshTime,
+        };
 
         await SaveData(JSON.stringify(save), $.password);
     }
@@ -263,6 +266,7 @@ const useData = create<Store>((set, get) => {
                 refreshTime: val,
                 timer: val,
             }));
+            save()
         },
         checkForUpdates: CheckForUpdates
     }
