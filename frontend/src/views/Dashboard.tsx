@@ -38,12 +38,12 @@ export default function Dashboard() {
 
     function handleLogout() {
         data.reset();
-        navigate("/");
+        navigate("/", { replace: true });
 
     }
 
     function handleSettingsClick() {
-        navigate("/settings")
+        navigate("/settings", { replace: true})
     }
 
     return (

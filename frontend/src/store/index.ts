@@ -4,6 +4,7 @@ import smartermailapi from '../api/smartermail';
 import { GetSpoolMessageCount, HasSavedData, ReadData, SaveData, DeleteData, CheckForUpdates} from '../../wailsjs/go/main/App';
 import ChangePassword from '../components/ChangePassword';
 import { Preview } from '@emotion-icons/material';
+import { Reset } from '@emotion-icons/boxicons-regular';
 
 const APP_VERSION = "0.2.2";
 const SAVE_VERSION = "1.0";
@@ -255,7 +256,11 @@ const useData = create<Store>((set, get) => {
         
             return false;
         },
-        resetData: DeleteData,
+        resetData: async () => {
+            get().reset();
+            return await DeleteData();
+            
+        },
         tick: () => {
             const $ = get();
             if ($.timer == 0) {

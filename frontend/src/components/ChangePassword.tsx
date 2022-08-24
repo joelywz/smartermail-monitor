@@ -11,7 +11,7 @@ interface Props {
 
 export default function ChangePassword(props: Props) {
 
-    const {errMsg, passwordProps, repeatPasswordProps, check, password, repeatPassword} = useRepeatPassword();
+    const { errMsg, passwordProps, repeatPasswordProps, check, password, repeatPassword } = useRepeatPassword();
     const isFilled = useMemo(() => password != "" && repeatPassword != "", [password, repeatPassword])
     const data = useData();
 
@@ -24,15 +24,14 @@ export default function ChangePassword(props: Props) {
 
     return (
         <div>
-        <h1 className="font-semibold">Change Password</h1>
-        <form className="mt-10 flex flex-col gap-12">
-            <InputGroup>
-                <InputField label="Password" id="password" type="password" {...passwordProps} errMsg={errMsg}/>
-                <InputField label="Repeat Password" id="password" type="password" {...repeatPasswordProps}/>
-            </InputGroup>
-            <button type="submit" onClick={handleSubmit} disabled={!isFilled}>Change</button>
-        </form>
-
-    </div>
+            <h1 className="font-semibold">Change Password</h1>
+            <form className="mt-10 flex flex-col gap-12">
+                <InputGroup>
+                    <InputField label="Password" id="password" type="password" {...passwordProps} errMsg={errMsg} />
+                    <InputField label="Repeat Password" id="password" type="password" {...repeatPasswordProps} />
+                </InputGroup>
+                <button type="submit" onClick={handleSubmit} disabled={!isFilled}>Change</button>
+            </form>
+        </div>
     )
 }

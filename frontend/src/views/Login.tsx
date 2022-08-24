@@ -49,7 +49,7 @@ export default function Login() {
         setTimeout(async () => {
             try {
                 await data.login(password.value)
-                navigate("/dashboard")
+                navigate("/dashboard", { replace: true })
             } catch (e) {
                 if (e == AccessError) {
                     setErrMsg("Invalid password")
@@ -65,7 +65,7 @@ export default function Login() {
     async function handleReset() {
         try {
             await data.resetData();
-            navigate("/register");
+            navigate("/register", { replace: true });
         } catch (e) {
             console.log(e);
             setErrMsg("Failed to reset data.");

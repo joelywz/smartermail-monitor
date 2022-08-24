@@ -14,9 +14,9 @@ export default function Init() {
       data.reset();
       console.log("init")
       if (await data.hasRegistered()) {
-        navigate("/login")
+        navigate("/login", { replace: true })
       } else {
-        navigate("/register")
+        navigate("/register", { replace: true })
       }
     }
   

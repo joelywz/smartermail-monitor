@@ -44,7 +44,7 @@ export default function Register() {
 
         try {
             await data.register(password.value)
-            navigate("/dashboard")
+            navigate("/dashboard", { replace: true })
         } catch (e) {
             console.log(e)
         }
