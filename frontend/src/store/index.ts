@@ -127,11 +127,13 @@ const useData = create<Store>((set, get) => {
             if (!parsedData.servers) throw InvalidDataError;
             if (!parsedData.version) throw InvalidDataError;
 
+            console.log("set refresh timer")
             set(prev => ({
                 ...prev,
                 servers: parsedData.servers,
                 dataSources: parsedData.servers.map(s => emptyDataSource(s.host)),
                 timer: parsedData.refreshTime || 30,
+                refreshTime: parsedData.refreshTime || 30,
                 loadedData: parsedData,
                 saveVersion: parsedData.version,
                 password: password,
@@ -231,12 +233,16 @@ const useData = create<Store>((set, get) => {
 
                         return {
                             ...prev,
-                            timer: prev.refreshTime,
                             dataSources: temp,
                         }
                     })
                 })
             })
+
+            set(prev => ({
+                ...prev,
+                timer: prev.refreshTime,
+            }))
         },
         ping: async(host, username, password) => {
             let result = await GetSpoolMessageCount(host, username, password);
@@ -254,6 +260,7 @@ const useData = create<Store>((set, get) => {
                 get().update();
                 
             } else {
+                if ($.password == null) return
                 set(prev => ({
                     ...prev,
                     timer: prev.timer - 1,
