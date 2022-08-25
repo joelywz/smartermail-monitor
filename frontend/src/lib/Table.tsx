@@ -95,7 +95,7 @@ export default function Table<T extends DataSource>({ datasource, columns, paddi
   }
 
   return (
-    <div className="flex h-full bg-white px-8 py-8 rounded-md overflow-x-auto">
+    <div className="flex flex-grow bg-white px-8 py-8 rounded-md overflow-x-auto">
       <table className="border-collapse max-h-full w-full flex flex-col overflow-x-auto bg-white">
         <thead>
           <tr className='flex'>
@@ -115,10 +115,18 @@ export default function Table<T extends DataSource>({ datasource, columns, paddi
           </tr>
         </thead>
 
-        <tbody className="overflow-y-auto overflow-x-hidden max-h-full h-full w-fit min-w-full">
+        <tbody className="overflow-y-auto overflow-x-hidden w-fit min-w-full">
           <AnimatePresence>
             {getDataSource().map(source => (
-              <motion.tr key={`row-${source.key}`} className="w-fit" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 20 }} layout transition={{ease: "easeInOut", duration: 0.25}}>
+              <motion.tr
+                key={`row-${source.key}`}
+                className="w-fit hover:bg-neutral-100"
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ ease: "easeInOut", duration: 0.25 }}
+              >
                 {columns.map((col) => {
                   const unknownVal = col.target != null ? source[col.target] as unknown : null;
                   const val = unknownVal == null ? "-" : unknownVal as string
@@ -147,6 +155,6 @@ interface CheckCellProps {
 
 export function CheckCell(props: CheckCellProps) {
   return (
-    <input type="checkbox" checked={props.value ? props.value : false} onChange={() => {}}/>
+    <input type="checkbox" checked={props.value ? props.value : false} onChange={() => { }} />
   )
 }

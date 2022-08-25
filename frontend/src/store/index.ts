@@ -3,7 +3,7 @@ import { DataSource } from '../lib/Table';
 import smartermailapi from '../api/smartermail';
 import { GetSpoolMessageCount, HasSavedData, ReadData, SaveData, DeleteData, CheckForUpdates} from '../../wailsjs/go/main/App';
 
-const APP_VERSION = "0.2.2";
+const APP_VERSION = "0.3.0";
 const SAVE_VERSION = "1.0";
 export const ConflictError = new Error("conflict encounted");
 export const NotFoundError = new Error("not found");
@@ -30,6 +30,7 @@ interface Store {
     tick: () => void
     setRefreshTime: (val: number) => void;
     checkForUpdates: (silent: boolean) => Promise<string>;
+    changePassword: (password: string) => Promise<void>;
 
 }
 
@@ -57,6 +58,7 @@ interface Server {
 interface Save {
     version: string,
     servers: Server[],
+    refreshTime: number,
 }
 
 
@@ -130,6 +132,8 @@ const useData = create<Store>((set, get) => {
                 ...prev,
                 servers: parsedData.servers,
                 dataSources: parsedData.servers.map(s => emptyDataSource(s.host)),
+                timer: parsedData.refreshTime || 30,
+                refreshTime: parsedData.refreshTime || 30,
                 loadedData: parsedData,
                 saveVersion: parsedData.version,
                 password: password,
@@ -148,7 +152,8 @@ const useData = create<Store>((set, get) => {
         const save: Save = {
             servers: $.servers,
             version: $.saveVersion,
-        }
+            refreshTime: $.refreshTime,
+        };
 
         await SaveData(JSON.stringify(save), $.password);
     }
@@ -228,12 +233,16 @@ const useData = create<Store>((set, get) => {
 
                         return {
                             ...prev,
-                            timer: prev.refreshTime,
                             dataSources: temp,
                         }
                     })
                 })
             })
+
+            set(prev => ({
+                ...prev,
+                timer: prev.refreshTime,
+            }))
         },
         ping: async(host, username, password) => {
             let result = await GetSpoolMessageCount(host, username, password);
@@ -244,13 +253,18 @@ const useData = create<Store>((set, get) => {
         
             return false;
         },
-        resetData: DeleteData,
+        resetData: async () => {
+            get().reset();
+            return await DeleteData();
+            
+        },
         tick: () => {
             const $ = get();
             if ($.timer == 0) {
                 get().update();
                 
             } else {
+                if ($.password == null) return
                 set(prev => ({
                     ...prev,
                     timer: prev.timer - 1,
@@ -263,8 +277,16 @@ const useData = create<Store>((set, get) => {
                 refreshTime: val,
                 timer: val,
             }));
+            save()
         },
-        checkForUpdates: CheckForUpdates
+        checkForUpdates: CheckForUpdates,
+        changePassword: async (password) => {
+            set(prev => ({
+                ...prev,
+                password,
+            }));
+            await save();
+        }
     }
 })
 

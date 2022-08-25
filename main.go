@@ -13,7 +13,7 @@ import (
 //go:embed frontend/dist
 var assets embed.FS
 
-const VERSION = "0.2.2"
+const VERSION = "0.3.0"
 
 func main() {
 

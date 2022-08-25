@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { defaultAnimation } from "../animations/default";
 import useData, { AccessError } from "../store";
 import { SpinnerIos } from "@emotion-icons/fluentui-system-filled/SpinnerIos"
+import { useAlert } from "../hooks/useAlert";
+import { ConfirmDialog, useConfirmDialog } from "../components/ConfirmDialog";
 
 export default function Login() {
 
@@ -14,6 +16,9 @@ export default function Login() {
     const [allowSubmit, setAllowSubmit] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errMsg, setErrMsg]= useState("");
+    const resetDataDialog = useConfirmDialog("Are you sure?", "All server information and preferences will be lost.");
+
+    const alert = useAlert();
 
     useEffect(() => {
         if (password.value != "") {
@@ -27,6 +32,7 @@ export default function Login() {
 
     useEffect(() => {
         async function exec() {
+            data.reset()
             try {
                 if (!await data.hasRegistered()) {
                     navigate("/register");
@@ -48,7 +54,7 @@ export default function Login() {
         setTimeout(async () => {
             try {
                 await data.login(password.value)
-                navigate("/dashboard")
+                navigate("/dashboard", { replace: true })
             } catch (e) {
                 if (e == AccessError) {
                     setErrMsg("Invalid password")
@@ -63,16 +69,20 @@ export default function Login() {
 
     async function handleReset() {
         try {
-            await data.resetData();
-            navigate("/register");
+            
+            if (await resetDataDialog.showDialog()) {
+                await data.resetData();
+                navigate("/", { replace: true });
+            }
         } catch (e) {
-            console.log(e);
-            setErrMsg("Failed to reset data.");
+            const err = e as Error;
+            alert.pushAlert("Error", err.message);
         }
 
     }
 
     return (
+        <>
         <motion.div 
             className="h-screen flex items-center justify-center"
             {...defaultAnimation}
@@ -101,6 +111,8 @@ export default function Login() {
 
             </div>
         </motion.div>
+        <ConfirmDialog {...resetDataDialog.props}/>
+        </>
 
     )
 }
