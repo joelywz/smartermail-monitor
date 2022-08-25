@@ -1,4 +1,5 @@
 import { FormEvent, useMemo } from "react";
+import { useAlert } from "../hooks/useAlert";
 import useRepeatPassword from "../hooks/useRepeatPassword";
 import InputField from "../lib/InputField";
 import InputGroup from "../lib/InputGroup";
@@ -14,12 +15,20 @@ export default function ChangePassword(props: Props) {
     const { errMsg, passwordProps, repeatPasswordProps, check, password, repeatPassword } = useRepeatPassword();
     const isFilled = useMemo(() => password != "" && repeatPassword != "", [password, repeatPassword])
     const data = useData();
+    const alert = useAlert();
 
     async function handleSubmit(ev: FormEvent) {
         ev.preventDefault();
         if (!check()) return;
-        await data.changePassword(password);
-        props.onComplete && props.onComplete();
+        try {
+            await data.changePassword(password);
+            props.onComplete && props.onComplete();
+        } catch (e) {
+            const err = e as Error;
+            alert.pushAlert("Error", err.message);
+        }
+
+  
     }
 
     return (

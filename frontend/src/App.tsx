@@ -8,6 +8,7 @@ import useData from "./store";
 import { TruckLoading } from "@emotion-icons/fa-solid";
 import { useEffect, useState } from "react";
 import Settings from "./views/Settings";
+import AlertManager from "./components/AlertManager";
 
 function App() {
 
@@ -53,7 +54,8 @@ function AnimatedRoutes() {
   }
 
   return (
-    <div className="h-screen w-screen overflow-hidden">
+    <div className="h-screen w-screen overflow-hidden relative">
+
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="" element={<Init />} />
@@ -63,9 +65,10 @@ function AnimatedRoutes() {
           <Route path="/settings" element={<Settings />}/>
         </Routes>
       </AnimatePresence>
-      <div className="fixed right-0 bottom-0 text-neutral-400 text-xs p-2.5 z">
+      <div className="fixed right-0 bottom-0 text-neutral-400 text-xs p-2.5 z-20">
         <p className="cursor-pointer" onClick={handleCheckUpdate}>{data.appVersion}</p>
       </div>
+      <AlertManager/>
     </div>
 
   )

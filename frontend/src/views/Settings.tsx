@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { defaultAnimation } from "../animations/default";
 import ChangePassword from "../components/ChangePassword";
 import { ConfirmDialog, useConfirmDialog } from "../components/ConfirmDialog";
+import { useAlert } from "../hooks/useAlert";
 import Modal from "../lib/Modal";
 import useData from "../store";
 
@@ -14,6 +15,7 @@ export default function Settings() {
     const [pwdModal, setPwdModal] = useState(false);
     const resetDataDialog = useConfirmDialog("Are you sure?", "All server information and preferences will be lost.");
     const data = useData();
+    const alert = useAlert();
 
     function handleBackClick() {
         navigate("/dashboard", {replace: true});
@@ -25,12 +27,16 @@ export default function Settings() {
 
     async function handleResetData() {
         if(await resetDataDialog.showDialog()) {
-            data.resetData();
-            navigate("/", {
-                replace: true,
-            })
-
-            return;
+            try {
+                await data.resetData();
+                navigate("/", {
+                    replace: true,
+                })
+    
+            } catch (e) {
+                const err = e as Error;
+                alert.pushAlert("Error", err.message);
+            }
         }
     }
 

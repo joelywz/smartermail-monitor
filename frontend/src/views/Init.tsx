@@ -1,10 +1,12 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAlert } from "../hooks/useAlert";
 import useData from "../store";
 
 export default function Init() {
     const data = useData();
     const navigate = useNavigate();
+    const alert = useAlert();
   
     useEffect(() => {  
       init();  
@@ -13,11 +15,17 @@ export default function Init() {
     async function init() {
       data.reset();
       console.log("init")
-      if (await data.hasRegistered()) {
-        navigate("/login", { replace: true })
-      } else {
-        navigate("/register", { replace: true })
+
+      try {
+        if (await data.hasRegistered()) {
+          navigate("/login", { replace: true })
+        } else {
+          navigate("/register", { replace: true })
+        }
+      } catch (e) {
+          alert.pushAlert("Error", (e as Error).message);
       }
+
     }
   
     return (

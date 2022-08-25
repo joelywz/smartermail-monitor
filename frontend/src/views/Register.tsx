@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { HasSavedData } from "../../wailsjs/go/main/App";
 import { defaultAnimation } from "../animations/default";
+import { useAlert } from "../hooks/useAlert";
 import useData from "../store";
 
 export default function Register() {
@@ -14,8 +15,10 @@ export default function Register() {
     const repeatPassword = useField();
     const [allowSubmit, setAllowSubmit] = useState(false);
     const [errMsg, setErrMsg]= useState("");
+    const alert = useAlert();
 
     useEffect(() => {
+
         let msg = "";
         if (password.value.length > 32 || repeatPassword.value.length > 32) {
             msg = "Password must not exceed 32 characters";
@@ -34,6 +37,15 @@ export default function Register() {
 
     }, [password.value, repeatPassword.value])
 
+    useEffect(() => {
+        async function exec() {
+            if (await data.hasRegistered()) {
+                navigate("/", { replace: true});
+            }
+        }
+        exec()
+    }, [])
+
 
     async function handleSubmit(ev: React.FormEvent) {
         ev.preventDefault();
@@ -46,7 +58,8 @@ export default function Register() {
             await data.register(password.value)
             navigate("/dashboard", { replace: true })
         } catch (e) {
-            console.log(e)
+            const err = e as Error;
+            alert.pushAlert("Error", err.message);
         }
 
         
