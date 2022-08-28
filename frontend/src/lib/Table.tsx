@@ -6,6 +6,7 @@ import TableHeaderCell, { SortState } from './TableHeaderCell';
 interface Props<T extends DataSource> {
   datasource: T[];
   columns: Columns<T>;
+  index?: boolean;
   paddingX?: number;
   paddingY?: number;
 }
@@ -31,7 +32,7 @@ export interface DataSource {
 export type Columns<T extends DataSource> = Column<T, any>[]
 
 
-export default function Table<T extends DataSource>({ datasource, columns, paddingX = 5, paddingY = 2 }: Props<T>) {
+export default function Table<T extends DataSource>({ datasource, columns, paddingX = 5, paddingY = 2, index = false}: Props<T>) {
 
   const [sortStates, setSortStates] = useState<SortState[]>(columns.map((): SortState => "default"));
   const [sortedDataSource, setSortedDataSource] = useState<T[]>(datasource);
@@ -99,6 +100,7 @@ export default function Table<T extends DataSource>({ datasource, columns, paddi
       <table className="border-collapse max-h-full w-full flex flex-col overflow-x-auto bg-white">
         <thead>
           <tr className='flex'>
+            {index && <TableHeaderCell value="#" width={50} paddingX={paddingX} paddingY={paddingY}/>}
             {columns.map((col, index) => (
               <TableHeaderCell
                 key={col.key}
@@ -117,7 +119,7 @@ export default function Table<T extends DataSource>({ datasource, columns, paddi
 
         <tbody className="overflow-y-auto overflow-x-hidden w-fit min-w-full">
           <AnimatePresence>
-            {getDataSource().map(source => (
+            {getDataSource().map((source, i) => (
               <motion.tr
                 key={`row-${source.key}`}
                 className="w-fit hover:bg-neutral-100"
@@ -127,6 +129,7 @@ export default function Table<T extends DataSource>({ datasource, columns, paddi
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ ease: "easeInOut", duration: 0.25 }}
               >
+                {index && <TableBodyCell key={`col-${source.key}-${index}`} width={50} paddingX={paddingX} paddingY={paddingY}>{i+1}</TableBodyCell>}
                 {columns.map((col) => {
                   const unknownVal = col.target != null ? source[col.target] as unknown : null;
                   const val = unknownVal == null ? "-" : unknownVal as string
