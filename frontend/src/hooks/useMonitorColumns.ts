@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DurationCell from "../components/DurationCell";
 import OptionsCell from "../components/OptionsCell";
 import StatusCell from "../components/StatusCell";
 import { CheckCell, Columns } from "../lib/Table";
@@ -109,7 +110,13 @@ export function useMonitorColumns() {
                 return b - a;
             },
         },
-
+        {
+            target: "uptime",
+            key: "header-uptime",
+            name: "Uptime",
+            width: 100,
+            component: DurationCell,
+        },
         {
             target: null,
             key: "header-options",

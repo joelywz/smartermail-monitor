@@ -4,7 +4,7 @@ import useData from "../store";
 export default function useRefreshInput() {
 
     const data = useData();
-    const refreshFocusTimeout = useRef<number | null>(null)
+    const refreshFocusTimeout = useRef<NodeJS.Timer | null>(null)
     const [refreshTime, setRefreshTime] = useState(100);
 
     useEffect(() => {

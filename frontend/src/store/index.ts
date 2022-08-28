@@ -268,6 +268,10 @@ const useData = create<Store>((set, get) => {
                 set(prev => ({
                     ...prev,
                     timer: prev.timer - 1,
+                    dataSources: prev.dataSources.map(d => ({
+                        ...d,
+                        uptime: d.uptime ? d.uptime + 1 : null,
+                    }))
                 }))
             }
         },
