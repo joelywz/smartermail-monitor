@@ -12,7 +12,8 @@ interface Props {
 
 export default function AddServer({ onComplete }: Props) {
 
-    const data = useData();
+    const addServer = useData(state => state.addServer);
+    const ping = useData(state => state.ping);
     const host = useField();
     const username = useField();
     const password = useField();
@@ -27,7 +28,7 @@ export default function AddServer({ onComplete }: Props) {
         setLockInput(true);
         let host = cleanHost()
         try {
-            await data.addServer(host, username.value, password.value);
+            await addServer(host, username.value, password.value);
             onComplete && onComplete();
         } catch (e) {
             if (e == ConflictError) {
@@ -44,7 +45,7 @@ export default function AddServer({ onComplete }: Props) {
         cleanHost();
         setLockInput(true);
         setPingState("loading");
-        const success = await data.ping(host.value, username.value, password.value);
+        const success = await ping(host.value, username.value, password.value);
         if (success) {
             setPingState("online");
         } else {
@@ -79,21 +80,21 @@ export default function AddServer({ onComplete }: Props) {
             <h1 className="font-semibold mb-4">Add Server</h1>
             <form className="flex flex-col" onSubmit={handleSubmit}>
                 <InputGroup>
-                    <InputField label="Host" id="host" {...host.props} errMsg={errMsg} />
-                    <InputField label="Username" id="username" {...username.props} />
-                    <InputField label="Password" id="password" type="password" {...password.props} />
+                    <InputField label="Host" id="host" {...host.props} errMsg={errMsg} disabled={lockInput}/>
+                    <InputField label="Username" id="username" {...username.props} disabled={lockInput} />
+                    <InputField label="Password" id="password" type="password" {...password.props} disabled={lockInput} />
                     <div className="flex items-center gap-2 mb-3">
                         <PingCircle state={pingState} />
                         <button
                             className="text-xs text-blue-500 disabled:text-neutral-400"
                             type="button"
-                            disabled={!allowSubmit}
+                            disabled={!allowSubmit || lockInput}
                             onClick={handleTestConnection}
                         >
                             Test Connection
                         </button>
                     </div>
-                    <button type="submit" disabled={!allowSubmit}>Add Server</button>
+                    <button type="submit" disabled={!allowSubmit || lockInput}>Add Server</button>
                 </InputGroup>
 
             </form>
