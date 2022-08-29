@@ -1,5 +1,7 @@
+import { useEffect, useRef, useState } from "react";
+
 interface Props {
-    value: number;
+    value: number | null;
 }
 
 function formatNumber(n: number) {
@@ -7,10 +9,29 @@ function formatNumber(n: number) {
 }
 
 export default function DurationCell(props: Props) {
+
+    const [offset, setOffset] = useState(0);
+    const intervalId = useRef<null | NodeJS.Timer>(null);
+
+    useEffect(() => {
+        setOffset(0);
+        if (props.value) {
+            intervalId.current = setInterval(() => {
+                setOffset(prev => prev + 1);
+            }, 1000)
+        }
+
+        return () => {
+            intervalId.current && clearInterval(intervalId.current);
+        }
+    }, [props.value])
+
+
+
     function getTime() {
         if (!props.value) return "-";
 
-        const seconds = props.value;
+        const seconds = props.value + offset;
 
         const d = Math.floor(seconds / (3600*24));
         const h = formatNumber(Math.floor(seconds % (3600*24) / 3600));

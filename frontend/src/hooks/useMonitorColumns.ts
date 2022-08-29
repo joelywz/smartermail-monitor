@@ -1,5 +1,5 @@
 import { useState } from "react";
-import DurationCell from "../components/DurationCell";
+import DurationCell from "../components/UptimeCell";
 import OptionsCell from "../components/OptionsCell";
 import StatusCell from "../components/StatusCell";
 import { CheckCell, Columns } from "../lib/Table";
