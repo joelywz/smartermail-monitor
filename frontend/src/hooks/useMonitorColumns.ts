@@ -1,7 +1,7 @@
 import { useState } from "react";
-import DurationCell from "../components/UptimeCell";
-import OptionsCell from "../components/OptionsCell";
-import StatusCell from "../components/StatusCell";
+import DurationCell from "../components/DashboardMain/UptimeCell";
+import OptionsCell from "../components/DashboardMain/OptionsCell";
+import StatusCell from "../components/DashboardMain/StatusCell";
 import { CheckCell, Columns } from "../lib/Table";
 import useData, { MonitorDataSource } from "../store";
 

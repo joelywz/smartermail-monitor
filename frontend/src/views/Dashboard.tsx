@@ -8,12 +8,12 @@ import { motion } from "framer-motion";
 import { defaultAnimation } from "../animations/default";
 import useData from "../store";
 import Table from "../lib/Table";
-import AddServer from "../components/AddServer";
+import AddServer from "../components/AddServer/AddServer";
 import Modal from "../lib/Modal";
 import useRefreshInput from "../hooks/useRefreshInput";
 import { Cog } from "@emotion-icons/boxicons-solid/Cog"
-import DashboardTopBar from "../components/DashboardTopBar";
-import DashboardMain from "../components/DashboardMain";
+import DashboardTopBar from "../components/DashboardTop/DashboardTop";
+import DashboardMain from "../components/DashboardMain/DashboardMain";
 import { useAlert } from "../hooks/useAlert";
 
 export default function Dashboard() {

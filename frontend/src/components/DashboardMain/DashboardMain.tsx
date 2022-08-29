@@ -1,6 +1,6 @@
-import { useMonitorColumns } from "../hooks/useMonitorColumns";
-import Table from "../lib/Table";
-import useData from "../store";
+import { useMonitorColumns } from "../../hooks/useMonitorColumns";
+import Table from "../../lib/Table";
+import useData from "../../store";
 
 export default function DashboardMain() {
 

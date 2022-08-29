@@ -2,11 +2,10 @@ import { Plus } from "@emotion-icons/boxicons-regular/Plus"
 import { LockAlt } from "@emotion-icons/boxicons-solid/LockAlt"
 import { Refresh } from "@emotion-icons/ionicons-outline/Refresh"
 import { Cog } from "@emotion-icons/boxicons-solid/Cog"
-import useRefreshInput from "../hooks/useRefreshInput";
-import useData from "../store";
+import useData from "../../store";
 import { useNavigate } from "react-router-dom";
-import RefreshInput from "./dashboardtop/RefreshInput";
-import RefreshTimer from "./dashboardtop/RefreshTimer";
+import RefreshInput from "./RefreshInput";
+import RefreshTimer from "./RefreshTimer";
 
 interface Props {
     onShowAddModalClick: () => void;

@@ -1,8 +1,8 @@
-import InputGroup from "../lib/InputGroup";
+import InputGroup from "../../lib/InputGroup";
 import { Close } from "@emotion-icons/material-twotone/Close"
-import InputField, { useField } from "../lib/InputField";
+import InputField, { useField } from "../../lib/InputField";
 import { FormEvent, useEffect, useState } from "react";
-import useData, { ConflictError } from "../store";
+import useData, { ConflictError } from "../../store";
 import PingCircle, { PingState } from "./PingCircle";
 
 interface Props {
