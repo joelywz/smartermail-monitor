@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Plus } from "@emotion-icons/boxicons-regular/Plus"
 import { LockAlt } from "@emotion-icons/boxicons-solid/LockAlt"
 import { Refresh } from "@emotion-icons/ionicons-outline/Refresh"
@@ -8,42 +8,48 @@ import { motion } from "framer-motion";
 import { defaultAnimation } from "../animations/default";
 import useData from "../store";
 import Table from "../lib/Table";
-import AddServer from "../components/AddServer";
+import AddServer from "../components/AddServer/AddServer";
 import Modal from "../lib/Modal";
 import useRefreshInput from "../hooks/useRefreshInput";
 import { Cog } from "@emotion-icons/boxicons-solid/Cog"
+import DashboardTopBar from "../components/DashboardTop/DashboardTop";
+import DashboardMain from "../components/DashboardMain/DashboardMain";
+import { useAlert } from "../hooks/useAlert";
 
 export default function Dashboard() {
 
     const [showAddModal, setShowAddModal] = useState(false);
     const navigate = useNavigate();
-    const data = useData();
-    const columns = useMonitorColumns();
-    const refreshInputProps = useRefreshInput();
+    const password = useData(state => state.password);
+    const login = useData(state => state.login);
+    const dataSourcesLength = useData(state => state.dataSources.length);
+    const alert = useAlert();
+
 
     useEffect(() => {
-        if (data.password == null) {
-            navigate("/");
+        if (password == null) {
+            navigate("/", {replace: true});
             return;
         }
 
-        if (data.dataSources.length == 0) {
-            data.login(data.password);
+        if (dataSourcesLength == 0) {
+            login(password).catch(e => {
+                const err = e as Error;
+                alert.pushAlert("Error", err.message + "\nTry restarting the application");
+            });
         }
     }, [])
 
-    function handleRefresh() {
-        data.update();
-    }
 
-    function handleLogout() {
-        data.reset();
-        navigate("/", { replace: true });
+    useEffect(() => {
+        if (password == null) {
+            navigate("/");
+            return;
+        }
+    }, [])
 
-    }
-
-    function handleSettingsClick() {
-        navigate("/settings", { replace: true})
+    function handleShowAddModalClick() {
+        setShowAddModal(true);
     }
 
     return (
@@ -53,35 +59,11 @@ export default function Dashboard() {
                 {...defaultAnimation}
             >
                 <div className="p-10 flex flex-col h-full gap-2">
-                    <div className="flex justify-between items-center">
-                        <h1 className="font-bold">Smartermail Monitor</h1>
-                        <div className="flex justify-end items-center gap-2 h-full">
-                            <p className="text-xs text-neutral-500">Refreshing in {data.timer}s</p>
 
-                            <div className="flex h-full items-center">
-                                <input className="w-12 rounded-l-md h-full px-1 text-xs outline-none text-center border border-r-0 text-neutral-800" {...refreshInputProps} />
-                                <div className="px-2 bg-neutral-50 text-xs h-full rounded-r-md flex items-center text-center text-neutral-600 border">s</div>
-                            </div>
+                    <DashboardTopBar onShowAddModalClick={handleShowAddModalClick}/>
 
-                            <button className="bg-blue-500 flex justify-center items-center text-white rounded-md h-8 w-8" onClick={handleRefresh}>
-                                <Refresh size={18} />
-                            </button>
+                    <DashboardMain/>
 
-
-                            <button className="bg-blue-500 flex justify-center items-center text-white rounded-md h-8 w-8" onClick={handleSettingsClick}>
-                                <Cog size={18} />
-                            </button>
-                            <button className="bg-blue-500 flex justify-center items-center text-white rounded-md h-8 w-8" onClick={handleLogout}>
-                                <LockAlt size={15} />
-                            </button>
-                            <button className="bg-blue-500 flex justify-center items-center text-white rounded-md h-8 w-8" onClick={() => setShowAddModal(true)}>
-                                <Plus size={20} />
-                            </button>
-                        </div>
-                    </div>
-
-
-                    <Table columns={columns} datasource={data.dataSources} />
                 </div>
             </motion.main>
 

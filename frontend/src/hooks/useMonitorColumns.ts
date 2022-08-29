@@ -1,11 +1,12 @@
 import { useState } from "react";
-import OptionsCell from "../components/OptionsCell";
-import StatusCell from "../components/StatusCell";
+import DurationCell from "../components/DashboardMain/UptimeCell";
+import OptionsCell from "../components/DashboardMain/OptionsCell";
+import StatusCell from "../components/DashboardMain/StatusCell";
 import { CheckCell, Columns } from "../lib/Table";
 import useData, { MonitorDataSource } from "../store";
 
 export function useMonitorColumns() {
-    const data = useData();
+    const removeServer = useData(state => state.removeServer);
     const [columns] = useState<Columns<MonitorDataSource>>([
         {
             target: "host",
@@ -109,7 +110,13 @@ export function useMonitorColumns() {
                 return b - a;
             },
         },
-
+        {
+            target: "uptime",
+            key: "header-uptime",
+            name: "Uptime",
+            width: 100,
+            component: DurationCell,
+        },
         {
             target: null,
             key: "header-options",
@@ -118,7 +125,7 @@ export function useMonitorColumns() {
             generateProps: (s) => {
                 return {
                     onDeleteClick: () => {
-                        data.removeServer(s.host);
+                        removeServer(s.host);
                     }
                 }
             },

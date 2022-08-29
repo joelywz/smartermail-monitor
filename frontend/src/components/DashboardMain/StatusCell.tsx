@@ -1,4 +1,4 @@
-import PingCircle, { PingState } from "./PingCircle";
+import PingCircle, { PingState } from "../AddServer/PingCircle";
 
 interface Props {
     value: boolean

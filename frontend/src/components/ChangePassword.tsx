@@ -14,14 +14,14 @@ export default function ChangePassword(props: Props) {
 
     const { errMsg, passwordProps, repeatPasswordProps, check, password, repeatPassword } = useRepeatPassword();
     const isFilled = useMemo(() => password != "" && repeatPassword != "", [password, repeatPassword])
-    const data = useData();
+    const changePassword = useData(state => state.changePassword)
     const alert = useAlert();
 
     async function handleSubmit(ev: FormEvent) {
         ev.preventDefault();
         if (!check()) return;
         try {
-            await data.changePassword(password);
+            await changePassword(password);
             props.onComplete && props.onComplete();
         } catch (e) {
             const err = e as Error;

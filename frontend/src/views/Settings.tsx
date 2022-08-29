@@ -14,7 +14,7 @@ export default function Settings() {
     const navigate = useNavigate();
     const [pwdModal, setPwdModal] = useState(false);
     const resetDataDialog = useConfirmDialog("Are you sure?", "All server information and preferences will be lost.");
-    const data = useData();
+    const resetData = useData(state => state.resetData);
     const alert = useAlert();
 
     function handleBackClick() {
@@ -28,7 +28,7 @@ export default function Settings() {
     async function handleResetData() {
         if(await resetDataDialog.showDialog()) {
             try {
-                await data.resetData();
+                await resetData();
                 navigate("/", {
                     replace: true,
                 })
