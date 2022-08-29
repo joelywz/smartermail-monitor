@@ -14,16 +14,31 @@ import useRefreshInput from "../hooks/useRefreshInput";
 import { Cog } from "@emotion-icons/boxicons-solid/Cog"
 import DashboardTopBar from "../components/DashboardTopBar";
 import DashboardMain from "../components/DashboardMain";
+import { useAlert } from "../hooks/useAlert";
 
 export default function Dashboard() {
 
     const [showAddModal, setShowAddModal] = useState(false);
     const navigate = useNavigate();
     const password = useData(state => state.password);
-    // const login = useData(state => state.login);
+    const login = useData(state => state.login);
+    const dataSourcesLength = useData(state => state.dataSources.length);
+    const alert = useAlert();
 
 
+    useEffect(() => {
+        if (password == null) {
+            navigate("/", {replace: true});
+            return;
+        }
 
+        if (dataSourcesLength == 0) {
+            login(password).catch(e => {
+                const err = e as Error;
+                alert.pushAlert("Error", err.message + "\nTry restarting the application");
+            });
+        }
+    }, [])
 
 
     useEffect(() => {
