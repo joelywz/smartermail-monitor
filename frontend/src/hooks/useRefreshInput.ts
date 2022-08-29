@@ -3,12 +3,13 @@ import useData from "../store";
 
 export default function useRefreshInput() {
 
-    const data = useData();
+    const rt = useData(state => state.refreshTime);
+    const setNewRefreshTime = useData(state => state.setRefreshTime)
     const refreshFocusTimeout = useRef<NodeJS.Timer | null>(null)
     const [refreshTime, setRefreshTime] = useState(100);
 
     useEffect(() => {
-        setRefreshTime(data.refreshTime);
+        setRefreshTime(rt);
     }, [])
 
 
@@ -56,7 +57,7 @@ export default function useRefreshInput() {
             targetTime = 10;
         }
 
-        data.setRefreshTime(targetTime);
+        setNewRefreshTime(targetTime);
         setRefreshTime(targetTime);
     }
 

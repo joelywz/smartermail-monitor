@@ -6,7 +6,7 @@ import { CheckCell, Columns } from "../lib/Table";
 import useData, { MonitorDataSource } from "../store";
 
 export function useMonitorColumns() {
-    const data = useData();
+    const removeServer = useData(state => state.removeServer);
     const [columns] = useState<Columns<MonitorDataSource>>([
         {
             target: "host",
@@ -125,7 +125,7 @@ export function useMonitorColumns() {
             generateProps: (s) => {
                 return {
                     onDeleteClick: () => {
-                        data.removeServer(s.host);
+                        removeServer(s.host);
                     }
                 }
             },

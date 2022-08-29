@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useMemo, useState } from 'react';
+import { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
+import { MonitorDataSource } from '../store';
 import TableBodyCell from './TableBodyCell';
 import TableHeaderCell, { SortState } from './TableHeaderCell';
 
@@ -39,15 +40,19 @@ export default function Table<T extends DataSource>({ datasource, columns, paddi
 
   const [sortIndex, setSortIndex] = useState(0);
   const isSorting = useMemo(() => sortStates.includes("ascend") || sortStates.includes("descend"), sortStates);
+  const handleSort = useCallback((index: number, state: SortState) => {
+    sort(index, state);
+  }, [sortStates])
+
 
   useEffect(() => {
     if (isSorting) {
-      handleSort(sortIndex, sortStates[sortIndex])
+      sort(sortIndex, sortStates[sortIndex])
     }
   }, [datasource])
 
 
-  function handleSort(index: number, state: SortState) {
+  function sort(index: number, state: SortState) {
     let s = [...sortStates];
 
     if (state == "ascend") {
@@ -100,16 +105,17 @@ export default function Table<T extends DataSource>({ datasource, columns, paddi
       <table className="border-collapse max-h-full w-full flex flex-col overflow-x-auto bg-white">
         <thead>
           <tr className='flex'>
-            {index && <TableHeaderCell value="#" width={50} paddingX={paddingX} paddingY={paddingY}/>}
+            {index && <TableHeaderCell index={-1} value="#" width={50} paddingX={paddingX} paddingY={paddingY}/>}
             {columns.map((col, index) => (
               <TableHeaderCell
                 key={col.key}
+                index={index}
                 width={col.width}
                 value={col.name}
                 paddingX={paddingX}
                 paddingY={paddingY}
                 sortable={col.sorter ? true : false}
-                onSort={(s) => handleSort(index, s)}
+                onSort={handleSort}
                 sortState={sortStates[index]}
               />
             ))}
