@@ -1,0 +1,13 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "smartermail-monitor-v2",
+  "outputfilename": "smartermail-monitor-v2",
+  "frontend:install": "pnpm install",
+  "frontend:build": "pnpm run build",
+  "frontend:dev:watcher": "pnpm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "Joel Yong",
+    "email": "yongwenzhuo@gmail.com"
+  }
+}
