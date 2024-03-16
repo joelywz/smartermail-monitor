@@ -2,11 +2,41 @@ package monitor_test
 
 import (
 	"context"
+	"math/rand"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/joelywz/smartermail-monitor/internal/monitor"
+	"github.com/joelywz/smartermail-monitor/pkg/smartermail"
 )
+
+func TestService(t *testing.T) {
+	service := monitor.NewService(NewMemRepo(), time.Millisecond*200, NewFetcher())
+
+	service.AddServer(context.Background(), "localhost", "admin", "admin")
+	service.AddServer(context.Background(), "localhost2", "admin", "admin")
+	service.AddServer(context.Background(), "localhost3", "admin", "admin")
+
+	service.Init()
+
+	mu := sync.Mutex{}
+	statCount := 0
+
+	service.StatsHook().AddListener(func(stats map[string]*monitor.Stats) {
+		mu.Lock()
+		defer mu.Unlock()
+		statCount++
+		t.Log(statCount)
+	})
+
+	time.Sleep(time.Second * 1)
+
+	if statCount < 4 {
+		t.Fail()
+	}
+
+}
 
 var _ monitor.ServerRepo = (*MemRepo)(nil)
 
@@ -52,12 +82,26 @@ func (repo *MemRepo) Update(ctx context.Context, id string, server *monitor.Serv
 	return nil
 }
 
-func TestService(t *testing.T) {
-	service := monitor.NewService(NewMemRepo(), time.Second*30)
+var _ monitor.Fetcher = (*MockFetcher)(nil)
 
-	service.AddServer(context.Background(), "localhost", "admin", "admin")
-	service.AddServer(context.Background(), "localhost2", "admin", "admin")
-	service.AddServer(context.Background(), "localhost3", "admin", "admin")
+func NewFetcher() *MockFetcher {
+	return &MockFetcher{}
+}
 
-	service.Fetch(context.Background())
+type MockFetcher struct{}
+
+// Fetch implements monitor.Fetcher.
+func (*MockFetcher) Fetch(ctx context.Context, host string, username string, password string) (*smartermail.RequestStats, error) {
+
+	return &smartermail.RequestStats{
+		Imap:            true,
+		ImapThreadCount: rand.Intn(20),
+		Pop:             true,
+		PopThreadCount:  rand.Intn(20),
+		Uptime:          1000,
+		Smtp:            true,
+		SmtpThreadCount: rand.Intn(20),
+		Spool:           true,
+		SpoolCount:      rand.Intn(100),
+	}, nil
 }
