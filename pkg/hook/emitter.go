@@ -14,7 +14,10 @@ type Emitter[T any] struct {
 type ListenerFunc[T any] func(data T)
 
 func NewEmitter[T any]() *Emitter[T] {
-	return &Emitter[T]{}
+	return &Emitter[T]{
+		listeners: make(map[string]chan T),
+		mu:        sync.RWMutex{},
+	}
 }
 
 func (emitter *Emitter[T]) AddListener(listener ListenerFunc[T]) string {
