@@ -30,7 +30,11 @@ func (client *SoapClient) GetRequestStatus() (*RequestStats, error) {
 
 	resp := newSoapResponseBody[requestStatsResponseXml]()
 
-	client.post("/Services/svcServerAdmin.asmx", NewRequestStatsXml(client.Username, client.Password), &resp)
+	err := client.post("/Services/svcServerAdmin.asmx", NewRequestStatsXml(client.Username, client.Password), &resp)
+
+	if err != nil {
+		return nil, err
+	}
 
 	resultCode := resp.Body.Data.RequestStatusResult.ResultCode
 
@@ -84,7 +88,7 @@ func (client *SoapClient) post(path string, xmlBody any, v any) error {
 		return err
 	}
 
-	url := fmt.Sprintf("%s/Services/svcServerAdmin.asmx", client.Host)
+	url := fmt.Sprintf("%s%s", client.Host, path)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 
