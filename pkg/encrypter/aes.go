@@ -21,7 +21,7 @@ func Encrypt(data string, password string) (string, error) {
 		return "", d.Error
 	}
 
-	return fmt.Sprintf("%s%s", salt, d.String()), nil
+	return fmt.Sprintf("%s%s", salt, d.ToHexString()), nil
 }
 
 func Decrypt(data string, password string) (dv string, err error) {
@@ -42,7 +42,7 @@ func Decrypt(data string, password string) (dv string, err error) {
 		}
 	}()
 
-	d := dongle.Decrypt.FromRawString(data[6:]).ByAes(cipher)
+	d := dongle.Decrypt.FromHexString(data[6:]).ByAes(cipher)
 
 	if d.Error != nil {
 		return "", errors.Join(d.Error, ErrInvalidPassword)
