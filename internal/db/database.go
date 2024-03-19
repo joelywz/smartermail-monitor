@@ -23,10 +23,10 @@ func Create(ctx context.Context, path string) error {
 
 	defer sqldb.Close()
 
-	_, err = sqldb.Exec("PRAGMA journal_mode=WAL;")
-	if err != nil {
-		return err
-	}
+	// _, err = sqldb.Exec("PRAGMA journal_mode=WAL;")
+	// if err != nil {
+	// 	return err
+	// }
 
 	db := bun.NewDB(sqldb, sqlitedialect.New())
 
