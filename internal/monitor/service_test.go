@@ -2,6 +2,7 @@ package monitor_test
 
 import (
 	"context"
+	"errors"
 	"math/rand"
 	"sync"
 	"testing"
@@ -12,7 +13,7 @@ import (
 )
 
 func TestService(t *testing.T) {
-	service := monitor.NewService(NewMemRepo(), time.Millisecond*200, NewFetcher())
+	service := monitor.NewService(NewMemRepo(), time.Millisecond*200, NewFetcher(), "secret")
 
 	service.AddServer(context.Background(), "localhost", "admin", "admin")
 	service.AddServer(context.Background(), "localhost2", "admin", "admin")
@@ -92,6 +93,10 @@ type MockFetcher struct{}
 
 // Fetch implements monitor.Fetcher.
 func (*MockFetcher) Fetch(ctx context.Context, host string, username string, password string) (*smartermail.RequestStats, error) {
+
+	if username != "admin" || password != "admin" {
+		return nil, errors.New("invalid credentials")
+	}
 
 	return &smartermail.RequestStats{
 		Imap:            true,

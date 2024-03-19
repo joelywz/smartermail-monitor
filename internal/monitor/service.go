@@ -2,9 +2,11 @@ package monitor
 
 import (
 	"context"
+	"log/slog"
 	"sync"
 	"time"
 
+	"github.com/joelywz/smartermail-monitor/pkg/encrypter"
 	"github.com/joelywz/smartermail-monitor/pkg/hook"
 	"github.com/joelywz/smartermail-monitor/pkg/smartermail"
 
@@ -25,9 +27,10 @@ type Service struct {
 	stats           map[string]*Stats
 	statsHook       *hook.Emitter[map[string]*Stats]
 	refreshTimeHook *hook.Emitter[time.Time]
+	encryptionPw    string
 }
 
-func NewService(repo ServerRepo, refreshInterval time.Duration, fetcher Fetcher) *Service {
+func NewService(repo ServerRepo, refreshInterval time.Duration, fetcher Fetcher, encryptionPw string) *Service {
 	return &Service{
 		Repo:            repo,
 		RefreshInterval: refreshInterval,
@@ -36,6 +39,7 @@ func NewService(repo ServerRepo, refreshInterval time.Duration, fetcher Fetcher)
 		stats:           make(map[string]*Stats),
 		statsHook:       hook.NewEmitter[map[string]*Stats](),
 		refreshTimeHook: hook.NewEmitter[time.Time](),
+		encryptionPw:    encryptionPw,
 	}
 }
 
@@ -89,7 +93,21 @@ func (s *Service) fetch(ctx context.Context) error {
 		go func(server *Server) {
 			defer wg.Done()
 
-			req, err := s.fetcher.Fetch(ctx, server.Host, server.Username, server.Password)
+			decryptedUsername, err := encrypter.Decrypt(server.Username, s.encryptionPw)
+
+			if err != nil {
+				slog.Error("Failed to decrypt username", err)
+				return
+			}
+
+			decryptedPw, err := encrypter.Decrypt(server.Password, s.encryptionPw)
+
+			if err != nil {
+				slog.Error("Failed to decrypt password", err)
+				return
+			}
+
+			req, err := s.fetcher.Fetch(ctx, server.Host, decryptedUsername, decryptedPw)
 
 			s.mutex.Lock()
 			defer s.mutex.Unlock()
@@ -116,11 +134,24 @@ func (s *Service) fetch(ctx context.Context) error {
 }
 
 func (s *Service) AddServer(ctx context.Context, host string, username string, password string) error {
+
+	encryptedUsername, err := encrypter.Encrypt(username, s.encryptionPw)
+
+	if err != nil {
+		return err
+	}
+
+	encryptedPw, err := encrypter.Encrypt(password, s.encryptionPw)
+
+	if err != nil {
+		return err
+	}
+
 	return s.Repo.Create(ctx, &Server{
 		ID:       gonanoid.Must(21),
 		Host:     host,
-		Username: username,
-		Password: password,
+		Username: encryptedUsername,
+		Password: encryptedPw,
 	})
 }
 
@@ -141,4 +172,8 @@ func (s *Service) StatsHook() *hook.Emitter[map[string]*Stats] {
 
 func (s *Service) RefreshTimeHook() *hook.Emitter[time.Time] {
 	return s.refreshTimeHook
+}
+
+func (s *Service) Close() {
+	s.refreshTimer.Stop()
 }
