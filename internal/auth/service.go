@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 
 	"github.com/joelywz/smartermail-monitor/pkg/encrypter"
@@ -22,14 +23,14 @@ func NewService(repo Repo) *Service {
 }
 
 func (service *Service) Register(ctx context.Context, password string) error {
-	slog.Info("Registering authentication")
+	slog.Info("Registering authentication challenge")
 
 	r := gonanoid.Must(64)
 
 	val, err := encrypter.Encrypt(r, password)
 
 	if err != nil {
-		return nil
+		return err
 	}
 
 	err = service.repo.Create(ctx, &Auth{
@@ -41,7 +42,9 @@ func (service *Service) Register(ctx context.Context, password string) error {
 		return err
 	}
 
-	slog.Info("Authentication registered successfully")
+	fmt.Println(val)
+
+	slog.Info("Authentication challenge registered successfully")
 
 	return nil
 }
@@ -52,6 +55,8 @@ func (service *Service) Verify(ctx context.Context, password string) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println(auth.ChallengeValue)
 
 	_, err = encrypter.Decrypt(auth.ChallengeValue, password)
 
