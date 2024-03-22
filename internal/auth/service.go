@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 
 	"github.com/joelywz/smartermail-monitor/pkg/encrypter"
@@ -42,8 +41,6 @@ func (service *Service) Register(ctx context.Context, password string) error {
 		return err
 	}
 
-	fmt.Println(val)
-
 	slog.Info("Authentication challenge registered successfully")
 
 	return nil
@@ -55,8 +52,6 @@ func (service *Service) Verify(ctx context.Context, password string) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println(auth.ChallengeValue)
 
 	_, err = encrypter.Decrypt(auth.ChallengeValue, password)
 
