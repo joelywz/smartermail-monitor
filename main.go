@@ -12,6 +12,7 @@ import (
 var assets embed.FS
 
 func main() {
+
 	// Create an instance of the app structure
 	app := NewApp()
 
@@ -27,6 +28,21 @@ func main() {
 		OnStartup:        app.startup,
 		Bind: []interface{}{
 			app,
+		},
+		ErrorFormatter: func(err error) any {
+
+			if uw, ok := err.(interface{ Unwrap() []error }); ok {
+				errs := uw.Unwrap()
+
+				e := make([]string, len(errs))
+
+				for i, err := range errs {
+					e[i] = err.Error()
+				}
+				return e
+			}
+
+			return []string{err.Error()}
 		},
 	})
 

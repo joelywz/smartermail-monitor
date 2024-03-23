@@ -9,21 +9,28 @@ import (
 	"github.com/joelywz/smartermail-monitor/internal/auth"
 	"github.com/joelywz/smartermail-monitor/internal/db"
 	"github.com/joelywz/smartermail-monitor/internal/monitor"
+	"github.com/joelywz/smartermail-monitor/pkg/smartermail"
+	"github.com/joelywz/smartermail-monitor/pkg/updater"
 	"github.com/uptrace/bun"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
+
+const version = "1.0.0"
 
 // App struct
 type App struct {
 	ctx            context.Context
 	db             *bun.DB
 	monitorService *monitor.Service
+	updateClient   *updater.Client
 	password       string
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-	return &App{}
+	return &App{
+		updateClient: updater.New(version, "joelywz/smartermail-monitor"),
+	}
 }
 
 // startup is called when the app starts. The context is saved
@@ -42,6 +49,19 @@ func (a *App) SelectDirectory() (string, error) {
 		DefaultDirectory:     ".",
 		Title:                "Select a directory",
 		CanCreateDirectories: true,
+	})
+}
+
+func (a *App) SelectDashboardFile() (string, error) {
+	return runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		DefaultDirectory: ".",
+		Title:            "Select Dashboard File",
+		Filters: []runtime.FileFilter{
+			{
+				DisplayName: "Smartermail Monitor",
+				Pattern:     "*.smm",
+			},
+		},
 	})
 }
 
@@ -90,6 +110,16 @@ func (a *App) Load(path string, password string) error {
 
 	monitorSvc := monitor.NewService(monitor.NewBunRepo(db), 60*time.Second, monitor.NewSmartermailFetcher(), password)
 
+	monitorSvc.StatsHook().AddListener(func(stats []*monitor.Stats) {
+		slog.Info("Emitting stats")
+		runtime.EventsEmit(a.ctx, "stats", stats)
+	})
+
+	monitorSvc.RefreshTimeHook().AddListener(func(t time.Time) {
+		slog.Info("Emitting refresh time")
+		runtime.EventsEmit(a.ctx, "refreshTime", t)
+	})
+
 	if err := monitorSvc.Init(); err != nil {
 		monitorSvc.Close()
 		return err
@@ -129,4 +159,38 @@ func (a *App) Unload() {
 
 	runtime.EventsEmit(a.ctx, "unloaded", nil)
 
+}
+
+func (a *App) AddServer(host string, username string, password string) error {
+	return a.monitorService.AddServer(a.ctx, host, username, password)
+}
+
+func (a *App) DeleteServer(id string) error {
+	return a.monitorService.DeleteServer(a.ctx, id)
+}
+
+func (a *App) TestConnection(host string, username string, password string) (*smartermail.RequestStats, error) {
+	client := smartermail.NewSoapClient(host, username, password)
+	return client.GetRequestStatus()
+}
+
+func (a *App) Refresh() error {
+	if a.monitorService == nil {
+		return nil
+	}
+
+	a.monitorService.Refresh()
+	return nil
+}
+
+func (a *App) Update() error {
+	return a.updateClient.UpdateLatest()
+}
+
+func (a *App) CheckUpdate() (*updater.CheckUpdateRes, error) {
+	return a.updateClient.Check()
+}
+
+func (a *App) GetCurrentVersion() string {
+	return a.updateClient.Version()
 }
