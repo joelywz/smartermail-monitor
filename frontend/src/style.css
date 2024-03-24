@@ -78,3 +78,7 @@
 html, body, #root {
   @apply h-full w-full;
 }
+
+#root {
+  @apply relative;
+}
