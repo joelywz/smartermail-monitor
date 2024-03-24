@@ -24,7 +24,7 @@ func TestService(t *testing.T) {
 	mu := sync.Mutex{}
 	statCount := 0
 
-	service.StatsHook().AddListener(func(stats map[string]*monitor.Stats) {
+	service.StatsHook().AddListener(func(stats []*monitor.Stats) {
 		mu.Lock()
 		defer mu.Unlock()
 		statCount++

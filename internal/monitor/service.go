@@ -9,8 +9,8 @@ import (
 	"github.com/joelywz/smartermail-monitor/pkg/encrypter"
 	"github.com/joelywz/smartermail-monitor/pkg/hook"
 	"github.com/joelywz/smartermail-monitor/pkg/smartermail"
-
-	gonanoid "github.com/matoous/go-nanoid/v2"
+	"github.com/oklog/ulid/v2"
+	"github.com/zhangyunhao116/skipmap"
 )
 
 type Fetcher interface {
@@ -24,8 +24,8 @@ type Service struct {
 	refreshTime     time.Time
 	fetcher         Fetcher
 	mutex           sync.RWMutex
-	stats           map[string]*Stats
-	statsHook       *hook.Emitter[map[string]*Stats]
+	stats           *skipmap.OrderedMap[string, *Stats]
+	statsHook       *hook.Emitter[[]*Stats]
 	refreshTimeHook *hook.Emitter[time.Time]
 	encryptionPw    string
 }
@@ -36,8 +36,8 @@ func NewService(repo ServerRepo, refreshInterval time.Duration, fetcher Fetcher,
 		RefreshInterval: refreshInterval,
 		fetcher:         fetcher,
 		mutex:           sync.RWMutex{},
-		stats:           make(map[string]*Stats),
-		statsHook:       hook.NewEmitter[map[string]*Stats](),
+		stats:           skipmap.New[string, *Stats](),
+		statsHook:       hook.NewEmitter[[]*Stats](),
 		refreshTimeHook: hook.NewEmitter[time.Time](),
 		encryptionPw:    encryptionPw,
 	}
@@ -90,6 +90,19 @@ func (s *Service) fetch(ctx context.Context) error {
 	defer wg.Wait()
 
 	for _, server := range servers {
+
+		if _, ok := s.stats.Load(server.ID); !ok {
+			s.stats.Store(server.ID, &Stats{
+				ID:         server.ID,
+				Status:     StatusFetching,
+				ErrMessage: "",
+				Host:       server.Host,
+				Result:     nil,
+			})
+		}
+
+		s.statsHook.EmitWithDebounce(s.Stats(), time.Millisecond*100)
+
 		go func(server *Server) {
 			defer wg.Done()
 
@@ -109,24 +122,19 @@ func (s *Service) fetch(ctx context.Context) error {
 
 			req, err := s.fetcher.Fetch(ctx, server.Host, decryptedUsername, decryptedPw)
 
-			s.mutex.Lock()
-			defer s.mutex.Unlock()
-
 			if err != nil {
-				s.stats[server.ID] = &Stats{
-					Online:     false,
-					ErrMessage: err.Error(),
-					Result:     nil,
-				}
+				stats, _ := s.stats.Load(server.ID)
+				stats.Status = StatusOffline
+				stats.ErrMessage = err.Error()
+				stats.Result = nil
+			} else {
+				stats, _ := s.stats.Load(server.ID)
+				stats.Status = StatusOnline
+				stats.ErrMessage = ""
+				stats.Result = req
 			}
 
-			s.stats[server.ID] = &Stats{
-				Online:     true,
-				ErrMessage: "",
-				Result:     req,
-			}
-
-			s.statsHook.EmitWithDebounce(s.stats, time.Millisecond*100)
+			s.statsHook.EmitWithDebounce(s.Stats(), time.Millisecond*100)
 		}(server)
 	}
 
@@ -147,26 +155,80 @@ func (s *Service) AddServer(ctx context.Context, host string, username string, p
 		return err
 	}
 
-	return s.Repo.Create(ctx, &Server{
-		ID:       gonanoid.Must(21),
+	id := ulid.Make().String()
+
+	err = s.Repo.Create(ctx, &Server{
+		ID:       id,
 		Host:     host,
 		Username: encryptedUsername,
 		Password: encryptedPw,
 	})
+
+	if err != nil {
+		return err
+	}
+
+	s.stats.Store(id, &Stats{
+		ID:         id,
+		Status:     StatusFetching,
+		ErrMessage: "",
+		Host:       host,
+		Result:     nil,
+	})
+
+	s.statsHook.Emit(s.Stats())
+
+	go func() {
+		req, err := s.fetcher.Fetch(ctx, host, username, password)
+
+		if err != nil {
+			stats, _ := s.stats.Load(id)
+			stats.Status = StatusOffline
+			stats.ErrMessage = err.Error()
+			stats.Result = nil
+
+		} else {
+			stats, _ := s.stats.Load(id)
+			stats.Status = StatusOnline
+			stats.ErrMessage = ""
+			stats.Result = req
+		}
+
+		s.statsHook.Emit(s.Stats())
+	}()
+
+	return nil
+
 }
 
 func (s *Service) DeleteServer(ctx context.Context, id string) error {
-	return s.Repo.Delete(ctx, id)
+
+	if err := s.Repo.Delete(ctx, id); err != nil {
+		return err
+	}
+
+	func() {
+		s.stats.Delete(id)
+	}()
+
+	s.statsHook.Emit(s.Stats())
+
+	return nil
 }
 
-func (s *Service) Stats() map[string]*Stats {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+func (s *Service) Stats() []*Stats {
 
-	return s.stats
+	var stats []*Stats
+
+	s.stats.Range(func(key string, value *Stats) bool {
+		stats = append(stats, value)
+		return true
+	})
+
+	return stats
 }
 
-func (s *Service) StatsHook() *hook.Emitter[map[string]*Stats] {
+func (s *Service) StatsHook() *hook.Emitter[[]*Stats] {
 	return s.statsHook
 }
 
