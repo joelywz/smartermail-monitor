@@ -3,8 +3,10 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
+	"os"
 
 	"github.com/joelywz/smartermail-monitor/internal/migrations"
 	"github.com/uptrace/bun"
@@ -50,6 +52,15 @@ func Create(ctx context.Context, path string) error {
 }
 
 func Open(path string) (*bun.DB, error) {
+
+	_, err := os.Stat(path)
+
+	if os.IsNotExist(err) {
+		return nil, errors.New("file does not exist")
+	} else if err != nil {
+		return nil, err
+	}
+
 	slog.Info("Opening database", "path", path)
 	sqldb, err := sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?cache=shared", path))
 
