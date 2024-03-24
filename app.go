@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/joelywz/smartermail-monitor/internal/auth"
 	"github.com/joelywz/smartermail-monitor/internal/db"
 	"github.com/joelywz/smartermail-monitor/internal/monitor"
+	"github.com/joelywz/smartermail-monitor/internal/userconf"
 	"github.com/joelywz/smartermail-monitor/pkg/smartermail"
 	"github.com/joelywz/smartermail-monitor/pkg/updater"
 	"github.com/uptrace/bun"
@@ -24,6 +27,7 @@ type App struct {
 	monitorService *monitor.Service
 	updateClient   *updater.Client
 	password       string
+	confPath       string
 }
 
 // NewApp creates a new App application struct
@@ -193,4 +197,39 @@ func (a *App) CheckUpdate() (*updater.CheckUpdateRes, error) {
 
 func (a *App) GetCurrentVersion() string {
 	return a.updateClient.Version()
+}
+
+func (a *App) LoadUserConfig() (*userconf.Config, error) {
+
+	path, err := a.getUserConfigPath()
+
+	if err != nil {
+		return nil, err
+	}
+
+	slog.Info("Loading user config", "path", path)
+
+	return userconf.Load(path)
+
+}
+
+func (a *App) SaveUserConfig(conf *userconf.Config) error {
+	path, err := a.getUserConfigPath()
+
+	if err != nil {
+		return err
+	}
+
+	slog.Info("Saving user config", "path", path)
+
+	return userconf.Save(conf, path)
+}
+
+func (a *App) getUserConfigPath() (string, error) {
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(dir, "Smartermail Monitor", "user.json"), nil
 }
