@@ -60,15 +60,7 @@ func Save(conf *Config, path string) error {
 		return err
 	}
 
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0644)
-
-	if err != nil {
-		return err
-	}
-
-	defer file.Close()
-
-	if _, err = file.Write(data); err != nil {
+	if err := os.WriteFile(path, data, 0644); err != nil {
 		return err
 	}
 

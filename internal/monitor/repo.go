@@ -7,4 +7,5 @@ type ServerRepo interface {
 	Create(ctx context.Context, server *Server) error
 	Update(ctx context.Context, id string, server *Server) error
 	Delete(ctx context.Context, id string) error
+	GetByHost(ctx context.Context, host string) (*Server, error)
 }

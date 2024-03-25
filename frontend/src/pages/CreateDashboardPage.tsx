@@ -20,7 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Input } from "../components/ui/input";
 import { z } from "zod";
-import { CreateDatabase, Load, SelectDirectory } from "../../wailsjs/go/main/App";
+import { CreateDatabase, Load, LoadUserConfig, SaveUserConfig, SelectDirectory } from "../../wailsjs/go/main/App";
 import { useNavigate } from "react-router-dom";
 
 const formSchema = z
@@ -52,6 +52,9 @@ export default function CreateDashboardPage() {
       const path = `${data.directory}/${data.filename}.smm`;
       await CreateDatabase(path, data.password);
       await Load(path, data.password);
+      const config = await LoadUserConfig();
+      config.lastAccessedFile = path;
+      await SaveUserConfig(config);
     } catch (e) {
       console.error(e);
     }

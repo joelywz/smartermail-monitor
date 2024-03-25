@@ -6,12 +6,20 @@ export function AddServer(arg1, arg2, arg3) {
   return window['go']['main']['App']['AddServer'](arg1, arg2, arg3);
 }
 
-export function CheckUpdate() {
-  return window['go']['main']['App']['CheckUpdate']();
+export function AddServers(arg1) {
+  return window['go']['main']['App']['AddServers'](arg1);
+}
+
+export function CheckUpdate(arg1) {
+  return window['go']['main']['App']['CheckUpdate'](arg1);
 }
 
 export function CreateDatabase(arg1, arg2) {
   return window['go']['main']['App']['CreateDatabase'](arg1, arg2);
+}
+
+export function CreateDatabaseFromLegacy(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['CreateDatabaseFromLegacy'](arg1, arg2, arg3, arg4);
 }
 
 export function DeleteServer(arg1) {
@@ -20,10 +28,6 @@ export function DeleteServer(arg1) {
 
 export function GetCurrentVersion() {
   return window['go']['main']['App']['GetCurrentVersion']();
-}
-
-export function Greet(arg1) {
-  return window['go']['main']['App']['Greet'](arg1);
 }
 
 export function Load(arg1, arg2) {
@@ -50,6 +54,10 @@ export function SelectDirectory() {
   return window['go']['main']['App']['SelectDirectory']();
 }
 
+export function SelectLegacyDashboardFile() {
+  return window['go']['main']['App']['SelectLegacyDashboardFile']();
+}
+
 export function TestConnection(arg1, arg2, arg3) {
   return window['go']['main']['App']['TestConnection'](arg1, arg2, arg3);
 }
@@ -60,4 +68,8 @@ export function Unload() {
 
 export function Update() {
   return window['go']['main']['App']['Update']();
+}
+
+export function VerifyLegacy(arg1, arg2) {
+  return window['go']['main']['App']['VerifyLegacy'](arg1, arg2);
 }

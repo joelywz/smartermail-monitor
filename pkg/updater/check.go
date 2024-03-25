@@ -33,20 +33,24 @@ func New(version string, repo string) *Client {
 	}
 }
 
-func (c *Client) Check() (*CheckUpdateRes, error) {
-	release, found, err := selfupdate.DetectLatest(c.repo)
+func (c *Client) Check(force bool) (*CheckUpdateRes, error) {
 
-	if err != nil {
-		return nil, err
+	if c.release == nil || force {
+		release, found, err := selfupdate.DetectLatest(c.repo)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if !found {
+			return nil, errors.New("no release found")
+		}
+
+		c.release = release
 	}
 
 	v := semver.MustParse(c.version)
-
-	if !found {
-		return nil, errors.New("no release found")
-	}
-
-	c.release = release
+	release := c.release
 
 	return &CheckUpdateRes{
 		Name:         release.Name,
@@ -61,7 +65,7 @@ func (c *Client) Check() (*CheckUpdateRes, error) {
 func (c *Client) UpdateLatest() error {
 
 	if c.release == nil {
-		if _, err := c.Check(); err != nil {
+		if _, err := c.Check(false); err != nil {
 			return err
 		}
 	}

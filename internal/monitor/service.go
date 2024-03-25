@@ -2,7 +2,9 @@ package monitor
 
 import (
 	"context"
+	"errors"
 	"log/slog"
+	"strings"
 	"sync"
 	"time"
 
@@ -12,6 +14,14 @@ import (
 	"github.com/oklog/ulid/v2"
 	"github.com/zhangyunhao116/skipmap"
 )
+
+var ErrServerExists = errors.New("server already exists")
+
+type ServerDto struct {
+	Host     string `json:"host"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
 
 type Fetcher interface {
 	Fetch(ctx context.Context, host string, username string, password string) (*smartermail.RequestStats, error)
@@ -23,7 +33,6 @@ type Service struct {
 	refreshTimer    *time.Timer
 	refreshTime     time.Time
 	fetcher         Fetcher
-	mutex           sync.RWMutex
 	stats           *skipmap.OrderedMap[string, *Stats]
 	statsHook       *hook.Emitter[[]*Stats]
 	refreshTimeHook *hook.Emitter[time.Time]
@@ -35,7 +44,6 @@ func NewService(repo ServerRepo, refreshInterval time.Duration, fetcher Fetcher,
 		Repo:            repo,
 		RefreshInterval: refreshInterval,
 		fetcher:         fetcher,
-		mutex:           sync.RWMutex{},
 		stats:           skipmap.New[string, *Stats](),
 		statsHook:       hook.NewEmitter[[]*Stats](),
 		refreshTimeHook: hook.NewEmitter[time.Time](),
@@ -44,7 +52,7 @@ func NewService(repo ServerRepo, refreshInterval time.Duration, fetcher Fetcher,
 }
 
 func (s *Service) Init() error {
-	s.fetch(context.Background())
+	go s.fetch(context.Background())
 	s.resetTimer()
 	return nil
 }
@@ -120,19 +128,7 @@ func (s *Service) fetch(ctx context.Context) error {
 				return
 			}
 
-			req, err := s.fetcher.Fetch(ctx, server.Host, decryptedUsername, decryptedPw)
-
-			if err != nil {
-				stats, _ := s.stats.Load(server.ID)
-				stats.Status = StatusOffline
-				stats.ErrMessage = err.Error()
-				stats.Result = nil
-			} else {
-				stats, _ := s.stats.Load(server.ID)
-				stats.Status = StatusOnline
-				stats.ErrMessage = ""
-				stats.Result = req
-			}
+			s.fetchStats(ctx, server.ID, server.Host, decryptedUsername, decryptedPw)
 
 			s.statsHook.EmitWithDebounce(s.Stats(), time.Millisecond*100)
 		}(server)
@@ -143,13 +139,19 @@ func (s *Service) fetch(ctx context.Context) error {
 
 func (s *Service) AddServer(ctx context.Context, host string, username string, password string) error {
 
-	encryptedUsername, err := encrypter.Encrypt(username, s.encryptionPw)
+	host = s.trimHost(host)
+
+	server, err := s.Repo.GetByHost(ctx, host)
 
 	if err != nil {
 		return err
 	}
 
-	encryptedPw, err := encrypter.Encrypt(password, s.encryptionPw)
+	if server != nil {
+		return ErrServerExists
+	}
+
+	encryptedUsername, encryptedPwd, err := s.encryptUsernameAndPwd(username, password)
 
 	if err != nil {
 		return err
@@ -161,7 +163,7 @@ func (s *Service) AddServer(ctx context.Context, host string, username string, p
 		ID:       id,
 		Host:     host,
 		Username: encryptedUsername,
-		Password: encryptedPw,
+		Password: encryptedPwd,
 	})
 
 	if err != nil {
@@ -179,26 +181,53 @@ func (s *Service) AddServer(ctx context.Context, host string, username string, p
 	s.statsHook.Emit(s.Stats())
 
 	go func() {
-		req, err := s.fetcher.Fetch(ctx, host, username, password)
-
-		if err != nil {
-			stats, _ := s.stats.Load(id)
-			stats.Status = StatusOffline
-			stats.ErrMessage = err.Error()
-			stats.Result = nil
-
-		} else {
-			stats, _ := s.stats.Load(id)
-			stats.Status = StatusOnline
-			stats.ErrMessage = ""
-			stats.Result = req
-		}
-
+		s.fetchStats(ctx, id, host, username, password)
 		s.statsHook.Emit(s.Stats())
 	}()
 
 	return nil
 
+}
+
+func (s *Service) AddServers(ctx context.Context, servers []ServerDto) error {
+
+	for _, server := range servers {
+		encryptedUsername, encryptedPwd, err := s.encryptUsernameAndPwd(server.Username, server.Password)
+
+		if err != nil {
+			return err
+		}
+
+		id := ulid.Make().String()
+
+		err = s.Repo.Create(ctx, &Server{
+			ID:       id,
+			Host:     server.Host,
+			Username: encryptedUsername,
+			Password: encryptedPwd,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		// s.stats.Store(id, &Stats{
+		// 	ID:         id,
+		// 	Status:     StatusFetching,
+		// 	ErrMessage: "",
+		// 	Host:       server.Host,
+		// 	Result:     nil,
+		// })
+
+		// go func() {
+		// 	s.fetchStats(ctx, id, server.Host, server.Username, server.Password)
+		// 	s.statsHook.EmitWithDebounce(s.Stats(), 100*time.Millisecond)
+		// }()
+	}
+
+	s.statsHook.Emit(s.Stats())
+
+	return nil
 }
 
 func (s *Service) DeleteServer(ctx context.Context, id string) error {
@@ -237,5 +266,47 @@ func (s *Service) RefreshTimeHook() *hook.Emitter[time.Time] {
 }
 
 func (s *Service) Close() {
-	s.refreshTimer.Stop()
+	if s.refreshTimer != nil {
+		s.refreshTimer.Stop()
+	}
+}
+
+func (s *Service) fetchStats(ctx context.Context, id string, host string, username string, password string) {
+	req, err := s.fetcher.Fetch(ctx, host, username, password)
+
+	if err != nil {
+		if stats, ok := s.stats.Load(id); ok {
+			stats.Status = StatusOffline
+			stats.ErrMessage = err.Error()
+			stats.Result = nil
+		}
+
+	} else {
+		if stats, ok := s.stats.Load(id); ok {
+			stats.Status = StatusOnline
+			stats.ErrMessage = ""
+			stats.Result = req
+		}
+
+	}
+}
+
+func (s *Service) encryptUsernameAndPwd(username string, password string) (string, string, error) {
+	encryptedUsername, err := encrypter.Encrypt(username, s.encryptionPw)
+
+	if err != nil {
+		return "", "", err
+	}
+
+	encryptedPw, err := encrypter.Encrypt(password, s.encryptionPw)
+
+	if err != nil {
+		return "", "", err
+	}
+
+	return encryptedUsername, encryptedPw, nil
+}
+
+func (s *Service) trimHost(host string) string {
+	return strings.TrimRight(host, "/")
 }

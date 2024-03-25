@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/joelywz/smartermail-monitor/internal/auth"
 	"github.com/joelywz/smartermail-monitor/internal/db"
+	"github.com/joelywz/smartermail-monitor/internal/legacy"
 	"github.com/joelywz/smartermail-monitor/internal/monitor"
 	"github.com/joelywz/smartermail-monitor/internal/userconf"
 	"github.com/joelywz/smartermail-monitor/pkg/smartermail"
@@ -27,7 +27,6 @@ type App struct {
 	monitorService *monitor.Service
 	updateClient   *updater.Client
 	password       string
-	confPath       string
 }
 
 // NewApp creates a new App application struct
@@ -41,11 +40,6 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-}
-
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
 
 func (a *App) SelectDirectory() (string, error) {
@@ -64,6 +58,19 @@ func (a *App) SelectDashboardFile() (string, error) {
 			{
 				DisplayName: "Smartermail Monitor",
 				Pattern:     "*.smm",
+			},
+		},
+	})
+}
+
+func (a *App) SelectLegacyDashboardFile() (string, error) {
+	return runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		DefaultDirectory: ".",
+		Title:            "Select Legacy Dashboard File",
+		Filters: []runtime.FileFilter{
+			{
+				DisplayName: "Legacy Smartermail Monitor",
+				Pattern:     "*.smmd",
 			},
 		},
 	})
@@ -169,6 +176,10 @@ func (a *App) AddServer(host string, username string, password string) error {
 	return a.monitorService.AddServer(a.ctx, host, username, password)
 }
 
+func (a *App) AddServers(servers []monitor.ServerDto) error {
+	return a.monitorService.AddServers(a.ctx, servers)
+}
+
 func (a *App) DeleteServer(id string) error {
 	return a.monitorService.DeleteServer(a.ctx, id)
 }
@@ -191,8 +202,8 @@ func (a *App) Update() error {
 	return a.updateClient.UpdateLatest()
 }
 
-func (a *App) CheckUpdate() (*updater.CheckUpdateRes, error) {
-	return a.updateClient.Check()
+func (a *App) CheckUpdate(force bool) (*updater.CheckUpdateRes, error) {
+	return a.updateClient.Check(force)
 }
 
 func (a *App) GetCurrentVersion() string {
@@ -223,6 +234,63 @@ func (a *App) SaveUserConfig(conf *userconf.Config) error {
 	slog.Info("Saving user config", "path", path)
 
 	return userconf.Save(conf, path)
+}
+
+func (a *App) CreateDatabaseFromLegacy(path string, password string, legacyPath string, legacyPassword string) error {
+
+	slog.Info("Creating database from legacy")
+	doc, err := legacy.Read(legacyPath, password)
+
+	if err != nil {
+		return err
+	}
+
+	if err := db.Create(a.ctx, path); err != nil {
+		return err
+	}
+
+	db, err := db.Open(path)
+
+	if err != nil {
+		return err
+	}
+
+	defer db.Close()
+
+	authRepo := auth.NewBunRepo(db)
+	authService := auth.NewService(authRepo)
+
+	if err := authService.Register(a.ctx, password); err != nil {
+		return err
+	}
+
+	monitorSvc := monitor.NewService(monitor.NewBunRepo(db), 60*time.Second, monitor.NewSmartermailFetcher(), password)
+
+	defer monitorSvc.Close()
+
+	slog.Info("Importing servers")
+
+	servers := make([]monitor.ServerDto, len(doc.Servers))
+
+	for i, s := range doc.Servers {
+		servers[i] = monitor.ServerDto{
+			Host:     s.Host,
+			Username: s.Username,
+			Password: s.Password,
+		}
+	}
+
+	return monitorSvc.AddServers(a.ctx, servers)
+}
+
+func (a *App) VerifyLegacy(path string, password string) (int, error) {
+	doc, err := legacy.Read(path, password)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return len(doc.Servers), nil
 }
 
 func (a *App) getUserConfigPath() (string, error) {

@@ -38,9 +38,24 @@ export default function CheckUpdateButton() {
     //   repoName: "smartermail-monitor",
     //   version: "1.0.0",
     // });
-    const data = await CheckUpdate();
-    setReleaseInfo(data);
+    try {
+      const data = await CheckUpdate(false);
+      setReleaseInfo(data);
+    } catch (e) {
+      if (e instanceof Array) {
+        toast({
+          title: "Failed",
+          description: `Failed to check for updates. ${e[0]}`,
+        });
+        return
+      }
+
+      console.error(e);
+
+    }
   }
+
+
 
   async function update() {
     try {

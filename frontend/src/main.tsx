@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage'
 import LoadDashboardPage from './pages/LoadDashboardPage'
 import CheckUpdateButton from './components/CheckUpdateButton'
 import { Toaster } from './components/ui/toaster'
+import ImportLegacyPage from './pages/ImportLegacyPage'
 
 const container = document.getElementById('root')
 
@@ -41,6 +42,10 @@ const router = createBrowserRouter([
         path: "load",
         element: <LoadDashboardPage/>
       },
+      {
+        path: "import",
+        element: <ImportLegacyPage/>
+      }
     ],
   },
 ]);

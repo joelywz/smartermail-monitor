@@ -45,6 +45,17 @@ type MemRepo struct {
 	servers map[string]*monitor.Server
 }
 
+// GetByHost implements monitor.ServerRepo.
+func (repo *MemRepo) GetByHost(ctx context.Context, host string) (*monitor.Server, error) {
+	for _, v := range repo.servers {
+		if v.Host == host {
+			return v, nil
+		}
+	}
+
+	return nil, nil
+}
+
 func NewMemRepo() *MemRepo {
 	return &MemRepo{
 		servers: make(map[string]*monitor.Server),

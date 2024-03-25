@@ -47,8 +47,23 @@ export default function AddServerDialog() {
   const connection = useTestConnection();
 
   async function handleSubmit(data: z.infer<typeof formSchema>) {
-    await AddServer(data.host, data.username, data.password);
-    setOpen(false);
+    try {
+      await AddServer(data.host, data.username, data.password);
+      setOpen(false);
+    } catch (e) {
+      if (e instanceof Array) {
+        if (e[0] == "server already exists") {
+          form.setError("host", {
+            type: "custom",
+            message: "Server with host already exists",
+          });
+          return
+        }
+      }
+
+      console.error(e);
+    }
+
   }
 
   const [open, setOpen] = useState(false);

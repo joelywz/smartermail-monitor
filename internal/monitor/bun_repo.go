@@ -59,3 +59,18 @@ func (b *BunServerRepo) Update(ctx context.Context, id string, server *Server) e
 
 	return nil
 }
+
+func (b *BunServerRepo) GetByHost(ctx context.Context, host string) (*Server, error) {
+	var server Server
+	exists, err := b.db.NewSelect().Model(&server).Where("host = ?", host).Exists(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		return nil, nil
+	}
+
+	return &server, nil
+}
