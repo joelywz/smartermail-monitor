@@ -1,0 +1,34 @@
+on:
+  push:
+    tags:
+      - "*"
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          - name: 'Smartermail Monitor'
+            platform: 'windows/amd64'
+            os: 'windows-latest'
+    runs-on: ${{ matrix.build.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - name: Build wails
+        uses: dAppServer/wails-build-action@v2.2
+        id: build
+        with:
+          build-name: ${{ matrix.build.name }}
+          build-platform: ${{ matrix.build.platform }}
+          nsis: true
+          package: false
+          go-version: '1.22.1'
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Wails Build ${{runner.os}} ${{inputs.build-name}}
+          path: |
+            */bin/
+            *\bin\*
