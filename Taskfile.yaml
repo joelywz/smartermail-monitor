@@ -1,0 +1,8 @@
+version: '3'
+
+tasks:
+  build-windows:
+    platforms: [windows]
+    cmds:
+      - wails build -platform windows/amd64 -upx
+      - powershell Compress-Archive -Path \'build/bin/Smartermail Monitor.exe\' -DestinationPath \'build/bin/smartermail-monitor-v{{.CLI_ARGS}}_windows-amd64.exe.zip\' -Force
