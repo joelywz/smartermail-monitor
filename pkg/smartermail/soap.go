@@ -2,6 +2,7 @@ package smartermail
 
 import (
 	"bytes"
+	"context"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type SoapClient struct {
@@ -88,9 +90,12 @@ func (client *SoapClient) post(path string, xmlBody any, v any) error {
 		return err
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	url := fmt.Sprintf("%s%s", client.Host, path)
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(body))
 
 	if err != nil {
 		return err

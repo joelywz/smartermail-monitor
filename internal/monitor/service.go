@@ -52,8 +52,13 @@ func NewService(repo ServerRepo, refreshInterval time.Duration, fetcher Fetcher,
 }
 
 func (s *Service) Init() error {
-	go s.fetch(context.Background())
-	s.resetTimer()
+	s.refreshTimeHook.Emit(s.refreshTime)
+
+	go func() {
+		s.fetch(context.Background())
+		s.resetTimer()
+	}()
+
 	return nil
 }
 
@@ -77,6 +82,8 @@ func (s *Service) resetTimer() {
 
 func (s *Service) Refresh() {
 	s.refreshTimer.Stop()
+	s.refreshTime = time.Now()
+	s.refreshTimeHook.Emit(s.refreshTime)
 	s.fetch(context.Background())
 	s.resetTimer()
 }
@@ -99,7 +106,7 @@ func (s *Service) fetch(ctx context.Context) error {
 
 	for _, server := range servers {
 
-		if _, ok := s.stats.Load(server.ID); !ok {
+		if stat, ok := s.stats.Load(server.ID); !ok {
 			s.stats.Store(server.ID, &Stats{
 				ID:         server.ID,
 				Status:     StatusFetching,
@@ -107,6 +114,9 @@ func (s *Service) fetch(ctx context.Context) error {
 				Host:       server.Host,
 				Result:     nil,
 			})
+		} else {
+			stat.Status = StatusFetching
+			stat.ErrMessage = ""
 		}
 
 		s.statsHook.EmitWithDebounce(s.Stats(), time.Millisecond*100)
