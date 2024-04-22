@@ -56,7 +56,7 @@ import { useNavigate } from "react-router-dom";
 //   smtpThreads: Math.floor(Math.random() * 100),
 //   popThreads: Math.floor(Math.random() * 100),
 //   imapThreads: Math.floor(Math.random() * 100),
-//   status: Math.random() > 0.5,
+//   status: ["online", "fetching", "offline"][Math.floor(Math.random() * 3)] as "online" | "fetching" | "offline",
 // }));
 
 const columnHelper = createColumnHelper<Stat>();
@@ -85,6 +85,7 @@ const defaultColumns = [
     minSize: 115,
     size: 115,
     enableHiding: false,
+    enableMultiSort: true,
   }),
   columnHelper.accessor("spool", {
     header: "Spool",
@@ -93,6 +94,7 @@ const defaultColumns = [
     minSize: 100,
     size: 100,
     sortUndefined: false,
+    enableMultiSort: true,
   }),
   columnHelper.accessor("imap", {
     header: "IMAP",
@@ -181,6 +183,7 @@ export default function DashboardPage() {
     enableColumnResizing: true,
     columnResizeMode: "onChange",
     enableSorting: true,
+    isMultiSortEvent: (e) => true,
     // debugAll: true,
     state: {
       sorting,
@@ -323,11 +326,11 @@ function TableHeaderCell({ ctx }: TableHeaderCellProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-24">
-        <DropdownMenuItem onClick={() => ctx.column.toggleSorting(false)}>
+        <DropdownMenuItem onClick={() => ctx.column.toggleSorting(false, true)}>
           <ArrowUpIcon className="mr-2 text-neutral-500 size-3" />
           Asc
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => ctx.column.toggleSorting(true)}>
+        <DropdownMenuItem onClick={() => ctx.column.toggleSorting(true, true)}>
           <ArrowDownIcon className="mr-2 text-neutral-500 size-3" />
           Desc
         </DropdownMenuItem>
