@@ -20,6 +20,7 @@ export default function CheckUpdateButton() {
   const [releaseInfo, setReleaseInfo] = useState<null | updater.CheckUpdateRes>(
     null
   );
+  const [updating, setUpdating] = useState(false);
 
   async function getVersion() {
     const version = await GetCurrentVersion();
@@ -58,7 +59,9 @@ export default function CheckUpdateButton() {
 
 
   async function update() {
+    if (updating) return;
     try {
+      setUpdating(true);
       await Update();
       toast({
         title: "Sucess",
@@ -73,6 +76,8 @@ export default function CheckUpdateButton() {
         });
       }
       
+    } finally {
+      setUpdating(false);
     }
   }
 
@@ -123,8 +128,8 @@ export default function CheckUpdateButton() {
               <DialogClose asChild>
                 <Button variant="outline">Close</Button>
               </DialogClose>
-              <Button disabled={!(releaseInfo?.latest === false)} onClick={update}>
-                Update
+              <Button disabled={!(releaseInfo?.latest === false) || updating} onClick={update}>
+                { updating ? "Updating..." : "Update" }
               </Button>
             </div>
           </DialogFooter>
