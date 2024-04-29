@@ -8,7 +8,7 @@ require (
 	github.com/matoous/go-nanoid/v2 v2.0.0
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/rhysd/go-github-selfupdate v1.2.3
-	github.com/wailsapp/wails/v2 v2.8.0
+	github.com/wailsapp/wails/v2 v2.8.1
 	github.com/zhangyunhao116/skipmap v0.10.1
 )
 

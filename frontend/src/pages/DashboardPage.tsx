@@ -38,13 +38,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AddServerDialog from "../components/AddServerForm";
 import { Stat, useDashboard } from "../context/DashboardContext";
 import { DeleteServer, Refresh } from "../../wailsjs/go/main/App";
 import { Input } from "../components/ui/input";
 import useCountdownTimer from "../hooks/useCountdownTimer";
 import { useNavigate } from "react-router-dom";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "../components/ui/hover-card";
 
 // const testData: Stat[] = Array.from({ length: 50 }, (_, i) => ({
 //   id: `${i}`,
@@ -200,11 +202,34 @@ export default function DashboardPage() {
     navigate(-1);
   }
 
+  const offlineServers = useMemo(
+    () => dashboard.data.filter(s => s.status == 'offline'),
+     [dashboard.data]
+    );
+
   return (
     <div className="flex flex-col p-8 h-screen gap-2.5">
       <div className="flex justify-between items-center">
-        <div>
+        <div className="flex items-center gap-4">
           <Button variant={"outline"} onClick={handleBackClick}><ChevronLeftIcon className="mr-2"/>Back</Button>
+          {
+            offlineServers.length > 0 && (
+            <HoverCard>
+              <HoverCardTrigger>
+                <div className="text-sm text-red-500 flex items-center gap-1 font-semibold select-none cursor-pointer">
+                  <ExclamationTriangleIcon/>
+                  { offlineServers.length } Server(s) Offline
+                </div>
+              </HoverCardTrigger>
+              <HoverCardContent>
+                { offlineServers.map(s => (
+                  <div className="text-neutral-800 text-sm">{ s.host }</div>
+                ))}
+              </HoverCardContent>
+            </HoverCard>
+
+            )
+          }
         </div>
         <div className="flex justify-normal gap-2.5 items-center">
           <p className="text-xs text-neutral-500">
