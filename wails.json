@@ -2,9 +2,9 @@
   "$schema": "https://wails.io/schemas/config.v2.json",
   "name": "Smartermail Monitor",
   "outputfilename": "Smartermail Monitor",
-  "frontend:install": "pnpm install",
-  "frontend:build": "pnpm run build",
-  "frontend:dev:watcher": "pnpm run dev",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "auto",
   "author": {
     "name": "Joel Yong",
@@ -12,7 +12,7 @@
   },
   "info": {
     "productName": "Smartermail Monitor",
-    "productVersion": "1.0.3",
+    "productVersion": "1.0.4",
     "companyName": "Joel Yong",
     "copyright": "Apache License"
   }

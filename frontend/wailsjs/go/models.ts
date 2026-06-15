@@ -19,6 +19,39 @@ export namespace monitor {
 
 }
 
+export namespace smartermail {
+	
+	export class RequestStats {
+	    Imap: boolean;
+	    ImapThreadCount: number;
+	    Pop: boolean;
+	    PopThreadCount: number;
+	    Uptime: number;
+	    Smtp: boolean;
+	    SmtpThreadCount: number;
+	    Spool: boolean;
+	    SpoolCount: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new RequestStats(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Imap = source["Imap"];
+	        this.ImapThreadCount = source["ImapThreadCount"];
+	        this.Pop = source["Pop"];
+	        this.PopThreadCount = source["PopThreadCount"];
+	        this.Uptime = source["Uptime"];
+	        this.Smtp = source["Smtp"];
+	        this.SmtpThreadCount = source["SmtpThreadCount"];
+	        this.Spool = source["Spool"];
+	        this.SpoolCount = source["SpoolCount"];
+	    }
+	}
+
+}
+
 export namespace updater {
 	
 	export class CheckUpdateRes {
@@ -48,7 +81,7 @@ export namespace updater {
 		    if (!a) {
 		        return a;
 		    }
-		    if (a.slice) {
+		    if (a.slice && a.map) {
 		        return (a as any[]).map(elem => this.convertValues(elem, classs));
 		    } else if ("object" === typeof a) {
 		        if (asMap) {
